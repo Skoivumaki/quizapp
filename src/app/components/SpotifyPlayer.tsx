@@ -14,7 +14,11 @@ interface PlayerState {
   progress_ms: number;
 }
 
-export default function SpotifyPlayer({ access_token }: { access_token: string }) {
+export default function SpotifyPlayer({
+  access_token,
+}: {
+  access_token: string;
+}) {
   const [playerState, setPlayerState] = useState<PlayerState | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -26,7 +30,14 @@ export default function SpotifyPlayer({ access_token }: { access_token: string }
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "state", access_token: access_token }),
       });
-      const data = await res.json();
+      const text = await res.text();
+      const data = text ? JSON.parse(text) : null;
+
+      if (!data) {
+        setPlayerState(null);
+        return;
+      }
+
       setPlayerState(data);
     } catch (e) {
       console.error("Error fetching player state:", e);
@@ -80,7 +91,7 @@ export default function SpotifyPlayer({ access_token }: { access_token: string }
   }, [access_token]);
 
   const track = playerState?.item;
-  const trackProgress = track ? (track.duration_ms || 0) : 0;
+  const trackProgress = track ? track.duration_ms || 0 : 0;
 
   return (
     <div className="max-w-md mx-auto p-4 bg-gray-900 text-white rounded-2xl shadow-lg">
@@ -93,12 +104,13 @@ export default function SpotifyPlayer({ access_token }: { access_token: string }
           />
           <h2 className="text-lg font-semibold mt-3">{track.name}</h2>
           <p className="text-sm text-gray-400">
-            {track.artists.map(a => a.name).join(", ")}
+            {track.artists.map((a) => a.name).join(", ")}
           </p>
 
           <div>
             <p className="text-xs text-gray-400 mt-2">
-              {new Date(localProgress || 0).toISOString().substr(14, 5)} / {new Date(trackProgress).toISOString().substr(14, 5)}
+              {new Date(localProgress || 0).toISOString().substr(14, 5)} /{" "}
+              {new Date(trackProgress).toISOString().substr(14, 5)}
             </p>
           </div>
 
@@ -111,7 +123,9 @@ export default function SpotifyPlayer({ access_token }: { access_token: string }
               ⏮
             </button>
             <button
-              onClick={() => handleAction(playerState?.is_playing ? "pause" : "play")}
+              onClick={() =>
+                handleAction(playerState?.is_playing ? "pause" : "play")
+              }
               disabled={loading}
               className="px-3 py-2 rounded bg-green-600 hover:bg-green-500"
             >

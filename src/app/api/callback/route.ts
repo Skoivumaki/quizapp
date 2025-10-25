@@ -27,9 +27,19 @@ export async function GET(req: NextRequest) {
   const data: SpotifyTokenResponse = await response.json();
   if ("error" in data) return NextResponse.redirect("/error");
 
+  const expiresAt = Date.now() + data.expires_in * 1000;
+
   const res = NextResponse.redirect("http://127.0.0.1:3000");
 
   res.cookies.set("spotify_access_token", data.access_token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    maxAge: data.expires_in,
+    path: "/",
+  });
+
+  res.cookies.set("spotify_token_expires_at", expiresAt.toString(), {
     httpOnly: true,
     secure: true,
     sameSite: "lax",

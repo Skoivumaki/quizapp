@@ -3,22 +3,19 @@ import { cookies } from "next/headers";
 
 /**
  * Universal Spotify proxy route.
- * Calls https://api.spotify.com/v1/<whatever> using the token from cookies.
- * Supports all methods: GET, POST, PUT, DELETE.
+ * Supports GET, POST, PUT, DELETE.
+ * Gracefully handles 204 No Content responses.
  */
-
 async function handleSpotifyProxy(req: NextRequest) {
   const token = (await cookies()).get("spotify_access_token")?.value;
   if (!token) {
     return NextResponse.json({ error: "No access token" }, { status: 401 });
   }
 
-  console.log("Proxying Spotify request:", req.method, req.url);
-
   const path = req.nextUrl.pathname.replace(/^\/api\/spotify\//, "");
-  const url = `https://api.spotify.com/v1/${path}`;
-
-  console.log("Forwarding to Spotify API URL:", url);
+  const search = req.nextUrl.search;
+  const url = `https://api.spotify.com/v1/${path}${search}`;
+  console.log(`Proxying ${req.method} → ${url}`);
 
   const init: RequestInit = {
     method: req.method,
@@ -34,8 +31,28 @@ async function handleSpotifyProxy(req: NextRequest) {
   }
 
   const res = await fetch(url, init);
-  const data = await res.json();
-  return NextResponse.json(data, { status: res.status });
+
+  // 204 No Content → return empty body
+  if (res.status === 204) {
+    return new NextResponse(null, { status: 204 });
+  }
+
+  // Try to parse JSON if present
+  const contentType = res.headers.get("content-type") ?? "";
+  let data: any = null;
+  if (contentType.includes("application/json")) {
+    try {
+      data = await res.json();
+    } catch {
+      data = null;
+    }
+  } else {
+    // fallback to text if not JSON
+    const text = await res.text();
+    data = text || null;
+  }
+
+  return NextResponse.json(data ?? {}, { status: res.status });
 }
 
 export const GET = handleSpotifyProxy;
