@@ -8,6 +8,8 @@ interface GameSettingsProps {
   setSeek: Dispatch<SetStateAction<number>>;
   random?: boolean;
   setRandom: Dispatch<SetStateAction<boolean>>;
+  internalPlayer: boolean;
+  setInternalPlayer: Dispatch<SetStateAction<boolean>>;
 }
 
 export default function GameSettings({
@@ -17,9 +19,15 @@ export default function GameSettings({
   setSeek,
   random: randomSeek,
   setRandom: setRandomSeek,
+  internalPlayer,
+  setInternalPlayer,
 }: GameSettingsProps) {
   const toggleRandomSeek = () => {
     setRandomSeek((prev) => !prev);
+  };
+
+  const toggleInternalPlayer = () => {
+    setInternalPlayer((prev) => !prev);
   };
 
   return (
@@ -65,6 +73,24 @@ export default function GameSettings({
           >
             {randomSeek ? "Random: ON" : "Random: OFF"}
           </button>
+        </label>
+        <label className="flex flex-col gap-2">
+          <span>Use Internal Player:</span>
+          <button
+            type="button"
+            onClick={toggleInternalPlayer}
+            className={`px-3 py-1 rounded font-semibold transition-colors ${
+              internalPlayer
+                ? "bg-green-600 hover:bg-green-500"
+                : "bg-gray-700 hover:bg-gray-600"
+            }`}
+          >
+            {internalPlayer ? "Internal: ON" : "Internal: OFF"}
+          </button>
+          <small>
+            This setting controls whether the device game is played on is used
+            for playback.
+          </small>
         </label>
       </div>
     </div>

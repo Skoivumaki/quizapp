@@ -20,6 +20,7 @@ export default function Scoreboard({
   const [roundClaimed, setRoundClaimed] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [chosenPlayer, setChosenPlayer] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -43,7 +44,10 @@ export default function Scoreboard({
   }, [players, loaded]);
 
   useEffect(() => {
-    if (canScore) setRoundClaimed(false);
+    if (canScore) {
+      setRoundClaimed(false);
+      setChosenPlayer(null);
+    }
   }, [canScore]);
 
   const addPlayer = () => {
@@ -63,6 +67,7 @@ export default function Scoreboard({
       prev.map((p) => (p.name === name ? { ...p, points: p.points + 1 } : p))
     );
     setRoundClaimed(true);
+    setChosenPlayer(name);
     onConsumeScore();
   };
 
@@ -81,92 +86,31 @@ export default function Scoreboard({
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        background: "#1e1e1e",
-        borderRadius: "8px",
-        padding: "1rem",
-        color: "white",
-        width: "320px",
-        position: "relative",
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "0.5rem",
-        }}
-      >
-        <h3 style={{ margin: 0 }}>Scoreboard</h3>
+    <div className="flex flex-col items-center bg-neutral-900 rounded-lg p-4 text-white w-[90%] min-w-[340px]">
+      <div className="w-full flex justify-between items-center mb-2">
+        <h3 className="m-0 text-lg font-semibold">Scoreboard</h3>
         <button
           onClick={() => setShowSettings((s) => !s)}
           title="Settings"
-          style={{
-            background: "transparent",
-            border: "none",
-            color: "#1ed760",
-            cursor: "pointer",
-            fontSize: "1.3rem",
-            padding: "0.2rem",
-          }}
+          className="text-green-400 text-xl hover:text-green-300 transition-colors"
         >
           ⚙️
         </button>
       </div>
 
       {showSettings && (
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            background: "#2a2a2a",
-            padding: "0.75rem",
-            borderRadius: "6px",
-            width: "100%",
-            marginBottom: "0.75rem",
-            gap: "0.5rem",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              gap: "0.5rem",
-              width: "100%",
-              justifyContent: "center",
-            }}
-          >
+        <div className="flex flex-col items-center bg-neutral-800 p-3 rounded-md w-full mb-3 gap-2 transition">
+          <div className="flex gap-2 w-full justify-center">
             <input
               type="text"
               placeholder="Add participant"
               value={newPlayer}
               onChange={(e) => setNewPlayer(e.target.value)}
-              style={{
-                flex: 1,
-                padding: "0.4rem",
-                borderRadius: "4px",
-                border: "1px solid #555",
-                background: "#2f2f2f",
-                color: "white",
-              }}
+              className="flex-1 px-2 py-1 rounded border border-neutral-600 bg-neutral-700 text-white placeholder-gray-400"
             />
             <button
               onClick={addPlayer}
-              style={{
-                background: "#1ed760",
-                color: "black",
-                border: "none",
-                borderRadius: "4px",
-                padding: "0.4rem 0.8rem",
-                cursor: "pointer",
-                fontWeight: 600,
-              }}
+              className="bg-green-500 text-black font-semibold rounded px-3 py-1 hover:bg-green-400 transition"
             >
               Add
             </button>
@@ -174,33 +118,14 @@ export default function Scoreboard({
 
           <button
             onClick={resetScoreboard}
-            style={{
-              background: "#ff5555",
-              border: "none",
-              borderRadius: "4px",
-              padding: "0.4rem 0.8rem",
-              cursor: "pointer",
-              fontWeight: 600,
-              color: "white",
-              width: "100%",
-              marginTop: "0.5rem",
-            }}
+            className="bg-red-500 text-white font-semibold rounded px-3 py-1 w-full hover:bg-red-400 transition"
           >
             Reset Scoreboard
           </button>
 
           <button
             onClick={clearScores}
-            style={{
-              background: "#ffcc00",
-              border: "none",
-              borderRadius: "4px",
-              padding: "0.4rem 0.8rem",
-              cursor: "pointer",
-              fontWeight: 600,
-              color: "black",
-              width: "100%",
-            }}
+            className="bg-yellow-400 text-black font-semibold rounded px-3 py-1 w-full hover:bg-yellow-300 transition"
           >
             Clear Scores
           </button>
@@ -208,50 +133,31 @@ export default function Scoreboard({
       )}
 
       {players.length === 0 ? (
-        <p>No participants yet.</p>
+        <p className="text-gray-400">No participants yet.</p>
       ) : (
-        <ul
-          style={{
-            listStyle: "none",
-            width: "100%",
-            padding: 0,
-            display: "flex",
-            flexDirection: "column",
-            gap: "0.5rem",
-          }}
-        >
+        <ul className="list-none w-full p-0 flex flex-col gap-2">
           {players.map((p) => (
             <li
               key={p.name}
               onClick={() => incrementScore(p.name)}
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                background: "#2f2f2f",
-                padding: "0.5rem 0.8rem",
-                borderRadius: "6px",
-                cursor: canScore && !roundClaimed ? "pointer" : "not-allowed",
-                opacity: canScore && !roundClaimed ? 1 : 0.6,
-              }}
+              className={`flex justify-between items-center px-3 py-2 rounded cursor-pointer font-medium transition ${
+                chosenPlayer === p.name
+                  ? "bg-green-500 text-black"
+                  : "bg-neutral-700 text-white"
+              } ${
+                canScore && !roundClaimed
+                  ? "hover:bg-neutral-600"
+                  : "opacity-60 cursor-not-allowed"
+              }`}
             >
               <span>{p.name}</span>
-              <span style={{ color: "#1ed760", fontWeight: "bold" }}>
-                {p.points}
-              </span>
+              <span className="text-green-400 font-bold">{p.points}</span>
             </li>
           ))}
         </ul>
       )}
 
-      <p
-        style={{
-          fontSize: "0.8rem",
-          color: "#aaa",
-          marginTop: "1rem",
-          textAlign: "center",
-        }}
-      >
+      <p className="text-sm text-gray-400 mt-4 text-center">
         {canScore
           ? roundClaimed
             ? "Point awarded this round"

@@ -33,6 +33,7 @@ export default function PlayerPage() {
   const [limit, setLimit] = useState<number>(20);
   const [seek, setSeek] = useState<number>(0);
   const [random, setRandom] = useState<boolean>(false);
+  const [internalPlayer, setInternalPlayer] = useState<boolean>(true);
 
   function handlePlaylistSelect(
     playlistId: string,
@@ -51,7 +52,7 @@ export default function PlayerPage() {
   }
 
   const playHref = selectedPlaylistId
-    ? `/play/${selectedPlaylistId}?limit=${limit}&seek=${seek}&random=${random}&internalPlayer=true`
+    ? `/play/${selectedPlaylistId}?limit=${limit}&seek=${seek}&random=${random}&internalPlayer=${internalPlayer}`
     : "#";
 
   return (
@@ -79,6 +80,8 @@ export default function PlayerPage() {
             setSeek={setSeek}
             random={random}
             setRandom={setRandom}
+            internalPlayer={internalPlayer}
+            setInternalPlayer={setInternalPlayer}
           />
           <Link
             href={playHref}

@@ -46,6 +46,16 @@ export default function GuessingGame({
     return Math.floor(Math.random() * (trackDurationMs - 30000)); // this makes sure at least 30s is left to play i think
   };
 
+  const [isShowAnswerDisabled, setIsShowAnswerDisabled] = useState(false);
+  const SHOW_ANSWER_COOLDOWN = 4000;
+
+  const triggerShowAnswerCooldown = () => {
+    setIsShowAnswerDisabled(true);
+    setTimeout(() => {
+      setIsShowAnswerDisabled(false);
+    }, SHOW_ANSWER_COOLDOWN);
+  };
+
   console.log("GuessingGame deviceId:", deviceId);
 
   useEffect(() => {
@@ -65,7 +75,7 @@ export default function GuessingGame({
       await playTrack({
         id: currentTrack.id,
         position_ms,
-        device_id: deviceId,
+        device_id: deviceId ?? undefined,
       }).unwrap();
       setHasStarted(true);
       setShowAnswer(false);
@@ -78,8 +88,12 @@ export default function GuessingGame({
   };
 
   const handleShowAnswer = () => {
+    if (isShowAnswerDisabled) return;
+
     setShowAnswer(true);
     onStatusChange?.("answer_shown");
+
+    triggerShowAnswerCooldown();
   };
 
   const handleNextTrack = async () => {
@@ -95,6 +109,7 @@ export default function GuessingGame({
     const nextTrack = tracks[nextIndex];
     setCurrentIndex(nextIndex);
     setShowAnswer(false);
+    triggerShowAnswerCooldown();
 
     const position_ms = random
       ? getRandomSeek(nextTrack.duration_ms || 30_000)
@@ -104,7 +119,7 @@ export default function GuessingGame({
       await playTrack({
         id: nextTrack.id,
         position_ms,
-        device_id: deviceId,
+        device_id: deviceId ?? undefined,
       }).unwrap();
       onStatusChange?.("playing");
     } catch (err) {
@@ -123,9 +138,9 @@ export default function GuessingGame({
         borderRadius: "8px",
         background: "#121212",
         color: "#fff",
-        width: "400px",
         alignSelf: "center",
-        margin: "2rem auto",
+        minWidth: "340px",
+        width: "90%",
       }}
     >
       <h2>{playlistName || "Playlist"}</h2>
@@ -171,17 +186,18 @@ export default function GuessingGame({
       ) : hasStarted && !showAnswer ? (
         <button
           onClick={handleShowAnswer}
-          style={{
-            background: "#333",
-            color: "#fff",
-            border: "1px solid #555",
-            padding: "0.5rem 1rem",
-            borderRadius: "6px",
-            cursor: "pointer",
-            fontWeight: 600,
-          }}
+          disabled={isShowAnswerDisabled}
+          className={`
+    border border-neutral-600 rounded-md px-4 py-2 font-semibold
+    transition-all duration-300
+    ${
+      isShowAnswerDisabled
+        ? "bg-neutral-700 text-gray-400 cursor-not-allowed opacity-70 animate-pulse"
+        : "bg-neutral-800 hover:bg-neutral-700 text-white cursor-pointer"
+    }
+  `}
         >
-          Show Answer
+          {isShowAnswerDisabled ? "Show Answer" : "Show Answer"}
         </button>
       ) : isFinished ? null : (
         <button
