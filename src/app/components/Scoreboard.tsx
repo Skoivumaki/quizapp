@@ -9,11 +9,15 @@ interface Player {
 interface ScoreboardProps {
   canScore: boolean;
   onConsumeScore: () => void;
+  onToggleVisibility: () => void;
+  isVisible?: boolean;
 }
 
 export default function Scoreboard({
   canScore,
   onConsumeScore,
+  onToggleVisibility,
+  isVisible,
 }: ScoreboardProps) {
   const [players, setPlayers] = useState<Player[]>([]);
   const [newPlayer, setNewPlayer] = useState("");
@@ -91,7 +95,13 @@ export default function Scoreboard({
         <h3 className="m-0 text-lg font-semibold w-full text-left">
           Scoreboard
         </h3>
-        <h2 className="m-0 text-sm text-gray-400 w-full">Hide</h2>
+        <button
+          onClick={onToggleVisibility}
+          title={isVisible ? "Hide Scoreboard" : "Show Scoreboard"}
+          className="text-gray-400 text-sm hover:text-white transition-colors w-full text-center"
+        >
+          Hide
+        </button>
         <button
           onClick={() => setShowSettings((s) => !s)}
           title="Settings"
