@@ -1,5 +1,6 @@
 import { memo } from "react";
 import Image from "next/image";
+import { Button, ButtonTheme, ButtonSize } from "./Button";
 
 interface PlaylistItemProps {
   playlist: any;
@@ -9,7 +10,7 @@ interface PlaylistItemProps {
 
 const PlaylistItem = memo(
   ({ playlist, onSelect, isLoading }: PlaylistItemProps) => (
-    <li className="bg-gray-800 p-2 my-2 rounded flex items-center justify-between max-w-full overflow-hidden">
+    <li className="bg-gray-900 p-2 my-2 rounded flex items-center justify-between max-w-full overflow-hidden">
       <div className="flex items-center min-w-0 flex-1 overflow-hidden">
         {playlist.images?.length > 0 && (
           <Image
@@ -28,14 +29,14 @@ const PlaylistItem = memo(
         </div>
       </div>
 
-      <button
-        className="ml-2 px-3 py-1 rounded bg-green-500 text-black font-semibold
-                 focus:outline-none hover:bg-green-400 active:bg-green-600 flex-shrink-0"
+      <Button
+        theme={ButtonTheme.PRIMARY}
+        size={ButtonSize.M}
         onClick={() => onSelect(playlist.id, playlist.name)}
         disabled={isLoading}
       >
-        Select
-      </button>
+        {"Select"}
+      </Button>
     </li>
   )
 );
