@@ -17,8 +17,15 @@ export const spotifyApi = createApi({
     getCurrentUser: builder.query<any, void>({
       query: () => "me",
     }),
-    getUserPlaylists: builder.query<any, void>({
-      query: () => "me/playlists",
+    getUserPlaylists: builder.query<
+      any,
+      { userId?: string; limit?: number; offset?: number }
+    >({
+      query: ({ userId, limit = 20, offset = 0 }) => {
+        const base = userId ? `users/${userId}/playlists` : `me/playlists`;
+
+        return `${base}?limit=${limit}&offset=${offset}`;
+      },
     }),
     getTrack: builder.query<any, string>({
       query: (id) => `tracks/${id}`,

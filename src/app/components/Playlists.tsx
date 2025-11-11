@@ -1,8 +1,9 @@
 "use client";
 
-import React, { memo } from "react";
+import React, { useState, useEffect } from "react";
 import { useGetCurrentUserQuery, useGetUserPlaylistsQuery } from "@/quizApi";
 import PlaylistItem from "./PlaylistItem";
+import { Button } from "./Button";
 
 export default function Playlist({
   onSelect,
@@ -22,88 +23,84 @@ export default function Playlist({
     isLoading: userLoading,
   } = useGetCurrentUserQuery();
 
+  const [offset, setOffset] = useState(0);
+  const [allPlaylists, setAllPlaylists] = useState<any[]>([]);
+
   const {
     data: playlistsData,
     error: playlistsError,
     isLoading: playlistsLoading,
-  } = useGetUserPlaylistsQuery(user?.id, { skip: !user?.id });
+    isFetching,
+  } = useGetUserPlaylistsQuery(
+    { userId: user?.id, offset },
+    { skip: !user?.id }
+  );
+
+  useEffect(() => {
+    if (playlistsData?.items) {
+      setAllPlaylists((prev) => {
+        const existingIds = new Set(prev.map((p) => p.id));
+        const newItems = playlistsData.items.filter(
+          (p: any) => !existingIds.has(p.id)
+        );
+        return offset === 0 ? playlistsData.items : [...prev, ...newItems];
+      });
+    }
+  }, [playlistsData, offset]);
 
   if (userError) return <p>Error loading user</p>;
   if (userLoading) return <p>Loading user…</p>;
 
+  const handleLoadMore = () => {
+    if (playlistsData?.next && !isFetching) {
+      setOffset((prev) => prev + playlistsData.limit);
+    }
+  };
+
+  const hasMore = Boolean(playlistsData?.next);
+
   return (
     <div className="w-full">
-      <h1 className="text-xl font-bold mb-2">Playlists</h1>
-
-      {playlistsLoading && <p>Loading playlists…</p>}
+      {playlistsLoading && offset === 0 && <p>Loading playlists…</p>}
       {playlistsError && <p>Error loading playlists</p>}
 
-      {playlistsData?.items?.length ? (
-        <ul>
-          {playlistsData.items.map((pl: any) => (
-            <PlaylistItem
-              key={pl.id}
-              playlist={pl}
-              onSelect={(
-                id,
-                name,
-                owner,
-                description,
-                totalTracks,
-                imageUrl
-              ) => {
-                onSelect(
-                  pl.id,
-                  pl.name,
-                  pl.owner?.display_name,
-                  pl.description,
-                  pl.tracks.total,
-                  pl.images.length > 0 ? pl.images[0].url : null
-                );
-              }}
-              isLoading={userLoading || playlistsLoading}
-            />
-          ))}
-        </ul>
+      {allPlaylists.length > 0 ? (
+        <>
+          <ul>
+            {allPlaylists.map((pl: any) => (
+              <PlaylistItem
+                key={pl.id}
+                playlist={pl}
+                onSelect={() => {
+                  onSelect(
+                    pl.id,
+                    pl.name,
+                    pl.owner?.display_name,
+                    pl.description,
+                    pl.tracks.total,
+                    pl.images.length > 0 ? pl.images[0].url : null
+                  );
+                }}
+                isLoading={userLoading || playlistsLoading}
+              />
+            ))}
+          </ul>
+
+          <div className="mt-4 text-center">
+            {hasMore ? (
+              <Button onClick={handleLoadMore} disabled={isFetching}>
+                {isFetching ? "Loading more…" : "Load More"}
+              </Button>
+            ) : (
+              !isFetching && (
+                <p className="text-green-400 mt-2">No more playlists found.</p>
+              )
+            )}
+          </div>
+        </>
       ) : (
         !playlistsLoading && <p>No playlists found.</p>
       )}
     </div>
   );
 }
-
-// Thing to play instead
-// "use client";
-// import { useGetCurrentUserQuery, useGetUserPlaylistsQuery, usePlayPlaylistMutation } from "@/quizApi";
-
-// export default function Profile() {
-//   const { data, error, isLoading } = useGetCurrentUserQuery();
-//   console.log("User ID:", data?.id);
-//   const { data: playlistsData, error: playlistsError, isLoading: playlistsLoading } = useGetUserPlaylistsQuery(data?.id);
-//   console.log("User Data:", playlistsData);
-
-//   const [playPlaylist] = usePlayPlaylistMutation();
-
-//   if (error) return <p>Error loading profile</p>;
-
-//   return (
-//     <div>
-//       <h1>Playlists</h1>
-//       {playlistsLoading && <p>Loading playlists...</p>}
-//       {playlistsError && <p>Error loading playlists</p>}
-//       {playlistsData && (
-//         <ul>
-//           {playlistsData.items.map((playlist) => (
-//             <li key={playlist.id}>
-//               {playlist.name}
-//               {playlist.id}
-//                     <button onClick={() => playPlaylist(playlist.id)} disabled={isLoading}>
-//                 ▶️ Play
-//             </button>
-//             </li>
-//           ))}
-//         </ul>
-//       )}
-//     </div>
-//   );
-// }
