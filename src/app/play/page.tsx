@@ -1,7 +1,6 @@
 "use client";
 
 import SpotifyPlayer from "../components/SpotifyPlayer";
-import UserProfile from "../components/UserProfile";
 import Playlists from "../components/Playlists";
 import Link from "next/link";
 import { useAccessToken } from "../providers";
@@ -10,21 +9,24 @@ import SearchPlaylist from "../components/SearchPlaylist";
 import ManualPlaylist from "../components/ManualPlaylist";
 import SelectedPlaylistInfo from "../components/SelectedPlaylistInfo";
 import GameSettings from "../components/GameSettings";
+import { Container } from "../components/Container";
+import { Button, ButtonSize, ButtonTheme } from "../components/Button";
+import { SwitchBox } from "../components/SwitchBox";
 
 export default function PlayerPage() {
   const accessToken = useAccessToken();
-
+  const [playlistSource, setPlaylistSource] = useState<
+    "myPlaylist" | "searchPlaylist"
+  >("myPlaylist");
+  const [manualMode, setManualMode] = useState<boolean>(false);
   const [selectedPlaylistId, setSelectedPlaylistId] = useState<string | null>(
     null
   );
-  const [selectedPlaylistName, setSelectedPlaylistName] = useState<
-    string | null
-  >("");
-  const [selectedPlaylistOwner, setSelectedPlaylistOwner] = useState<
-    string | null
-  >("");
+  const [selectedPlaylistName, setSelectedPlaylistName] = useState<string>("");
+  const [selectedPlaylistOwner, setSelectedPlaylistOwner] =
+    useState<string>("");
   const [selectedPlaylistDescription, setSelectedPlaylistDescription] =
-    useState<string | null>("");
+    useState<string>("");
   const [selectedPlaylistTotalTracks, setSelectedPlaylistTotalTracks] =
     useState<number | null>(null);
   const [selectedPlaylistImageUrl, setSelectedPlaylistImageUrl] = useState<
@@ -57,48 +59,98 @@ export default function PlayerPage() {
 
   return (
     <div className="w-screen p-4 flex flex-col items-center gap-4">
-      <SpotifyPlayer access_token={accessToken ?? ""} />
-      <UserProfile />
-      <Playlists onSelect={handlePlaylistSelect} />
-      <SearchPlaylist onSelect={handlePlaylistSelect} />
-      <ManualPlaylist onSelect={handlePlaylistSelect} />
+      <h1 className="text-center font-bold text-2xl">Quiz Setup</h1>
+
+      <Container
+        direction="row"
+        justify="between"
+        align="center"
+        gap="4"
+        className="w-full bg-gray-800 p-4 rounded"
+      >
+        GAMEMODE SELECTION
+      </Container>
+
+      <Container
+        direction="col"
+        justify="between"
+        align="center"
+        gap="4"
+        className="w-full bg-gray-800 p-4 rounded"
+      >
+        <>
+          <SwitchBox
+            theme={ButtonTheme.PRIMARY}
+            options={[
+              { label: "My Playlists", value: "myPlaylist" },
+              { label: "Search Playlists", value: "searchPlaylist" },
+            ]}
+            onChange={(val) =>
+              setPlaylistSource(val as "myPlaylist" | "searchPlaylist")
+            }
+            currentValue={playlistSource}
+          />
+          {playlistSource === "myPlaylist" ? (
+            <Playlists onSelect={handlePlaylistSelect} />
+          ) : (
+            <SearchPlaylist onSelect={handlePlaylistSelect} />
+          )}
+          {manualMode ? (
+            <ManualPlaylist onSelect={handlePlaylistSelect} />
+          ) : (
+            <button onClick={() => setManualMode(true)}>
+              <small className="underline">
+                {"Can't find what you are looking for? Try manual entry."}
+              </small>
+            </button>
+          )}
+        </>
+      </Container>
 
       {selectedPlaylistId ? (
         <>
-          <SelectedPlaylistInfo
-            playlistId={selectedPlaylistId}
-            playlistName={selectedPlaylistName}
-            owner={selectedPlaylistOwner}
-            description={selectedPlaylistDescription}
-            totalTracks={selectedPlaylistTotalTracks}
-            imageUrl={selectedPlaylistImageUrl}
-          />
-          <GameSettings
-            limit={limit}
-            setLimit={setLimit}
-            seek={seek}
-            setSeek={setSeek}
-            random={random}
-            setRandom={setRandom}
-            internalPlayer={internalPlayer}
-            setInternalPlayer={setInternalPlayer}
-          />
-          <Link
-            href={playHref}
-            style={{
-              background: "#1ed760",
-              color: "#000",
-              textDecoration: "none",
-              padding: "0.6rem 1.2rem",
-              borderRadius: "6px",
-              fontWeight: 600,
-            }}
+          <h1 className="text-center font-bold text-2xl">Game Settings</h1>
+          <Container
+            direction="col"
+            justify="between"
+            align="center"
+            gap="4"
+            className="w-full bg-gray-800 p-4 rounded"
           >
-            Play
-          </Link>
+            <GameSettings
+              limit={limit}
+              setLimit={setLimit}
+              seek={seek}
+              setSeek={setSeek}
+              random={random}
+              setRandom={setRandom}
+              internalPlayer={internalPlayer}
+              setInternalPlayer={setInternalPlayer}
+            />
+          </Container>
+          <h1 className="text-center font-bold text-2xl">Overview</h1>
+          <Container
+            direction="col"
+            justify="between"
+            align="center"
+            gap="4"
+            className="w-full bg-gray-800 p-4 rounded"
+          >
+            <SelectedPlaylistInfo
+              playlistId={selectedPlaylistId}
+              playlistName={selectedPlaylistName}
+              owner={selectedPlaylistOwner}
+              description={selectedPlaylistDescription}
+              totalTracks={selectedPlaylistTotalTracks}
+              imageUrl={selectedPlaylistImageUrl}
+            />
+            <Button theme={ButtonTheme.PRIMARY} size={ButtonSize.XL}>
+              <Link href={playHref}>Start Game</Link>
+            </Button>
+          </Container>
         </>
       ) : (
-        <p>No Playlist Selected</p>
+        <p className="text-green-400">No Playlist Selected</p>
       )}
     </div>
   );

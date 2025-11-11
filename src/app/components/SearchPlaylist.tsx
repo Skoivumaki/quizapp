@@ -43,15 +43,15 @@ export default function SearchPlaylist({
 
   return (
     <div className="text-white flex flex-col items-center w-full">
-      <h1 className="text-xl font-bold mb-4">Search Spotify Playlists</h1>
+      <h1 className="text-xl font-bold mb-4">Search Playlists from Spotify</h1>
 
-      <form onSubmit={handleSubmit} className="mb-4">
+      <form onSubmit={handleSubmit} className="mb-4 w-full flex justify-center">
         <input
           type="text"
           placeholder="Search playlists..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="p-2 mr-2 rounded border border-gray-600 bg-gray-800 text-white"
+          className="p-2 mr-2 rounded border border-gray-600 bg-gray-800 text-white w-full focus:outline-none focus:border-green-500 focus:border-2"
         />
         <button
           type="submit"
@@ -73,7 +73,7 @@ export default function SearchPlaylist({
       {error && <p>Something went wrong. Try again.</p>}
 
       {validItems.length > 0 && (
-        <ul>
+        <ul className="w-full">
           {validItems.map((pl: any) => (
             <PlaylistItem
               key={pl.id}

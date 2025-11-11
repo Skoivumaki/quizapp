@@ -44,6 +44,7 @@ export default function PlayPage() {
   );
   const [gameStatus, setGameStatus] = useState("loading");
   const [canScore, setCanScore] = useState(false);
+  const [showScoreboard, setShowScoreboard] = useState(true);
 
   useEffect(() => {
     if (!internalPlayer || !accessToken || typeof window === "undefined")
@@ -126,6 +127,8 @@ export default function PlayPage() {
               Playlist loaded with <strong>{formattedTracks.length}</strong>{" "}
               tracks. Limit: <strong>{limitParam}</strong> | Seek Start:{" "}
               <strong>{seekParam}ms </strong> | Status: {gameStatus}
+              {isScoreboardVisible && <span> | Scoreboard: Visible</span>}
+              {showScoreboard && <span> | Scoreboard: Shown</span>}
             </p>
           </>
         )}
@@ -139,14 +142,28 @@ export default function PlayPage() {
           deviceId={spotifyDeviceId}
         />
       </div>
+      {!isScoreboardVisible && (
+        <button
+          onClick={() => setShowScoreboard((prev) => !prev)}
+          title={showScoreboard ? "Hide Scoreboard" : "Show Scoreboard"}
+          className="text-gray-400 text-sm hover:text-white transition-colors w-full text-center p-2 bottom-0 fixed bg-neutral-900 rounded-lg"
+        >
+          Show Scoreboard
+        </button>
+      )}
       <div
         className={`flex flex-col items-center gap-4 transition-all duration-300 ease-in-out w-full fixed bottom-0 mb-2 overflow-hidden ${
-          isScoreboardVisible
+          isScoreboardVisible || showScoreboard
             ? "translate-y-0 opacity-100"
-            : "translate-y-full opacity-100 pointer-events-none"
+            : "translate-y-full opacity-100"
         }`}
       >
-        <Scoreboard canScore={canScore} onConsumeScore={handleConsumeScore} />
+        <Scoreboard
+          canScore={canScore}
+          onConsumeScore={handleConsumeScore}
+          isVisible={isScoreboardVisible}
+          onToggleVisibility={() => setShowScoreboard((v) => !v)}
+        />
 
         {/* <Link
           href="/play"
