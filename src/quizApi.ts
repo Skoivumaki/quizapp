@@ -3,7 +3,7 @@ import SearchPlaylist from "./app/components/SearchPlaylist";
 
 export const spotifyApi = createApi({
   reducerPath: "spotifyApi",
-  baseQuery: fetchBaseQuery({ baseUrl: "/api/spotify/" }),
+  baseQuery: fetchBaseQuery({ baseUrl: "/quiz/api/spotify/" }),
   endpoints: (builder) => ({
     SearchPlaylists: builder.query<
       any,
