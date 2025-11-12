@@ -44,13 +44,16 @@ export default async function PlayerPage() {
           </Button>
         </Container>
         <Container
-          direction="row"
+          direction="col"
           justify="between"
           align="center"
           gap="4"
           className="w-full bg-gray-800 p-4 rounded"
         >
           <h1>{"BILLING INFO"}</h1>
+          <Button theme={ButtonTheme.PRIMARY} size={ButtonSize.XL}>
+            <Link href="/checkout">Checkout Page Test</Link>
+          </Button>
         </Container>
         <Container
           direction="col"
