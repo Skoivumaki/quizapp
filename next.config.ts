@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+basePath: '/quiz',
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -19,9 +20,5 @@ const nextConfig: NextConfig = {
 };
 
 module.exports = nextConfig;
-
-module.exports = {
-  basePath: '/quiz',
-}
 
 export default nextConfig;
