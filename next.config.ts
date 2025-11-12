@@ -20,4 +20,8 @@ const nextConfig: NextConfig = {
 
 module.exports = nextConfig;
 
+module.exports = {
+  basePath: '/quiz',
+}
+
 export default nextConfig;
