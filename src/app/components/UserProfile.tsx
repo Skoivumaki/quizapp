@@ -1,5 +1,8 @@
 "use client";
 import { useGetCurrentUserQuery } from "@/quizApi";
+import Link from "next/link";
+import { Button, ButtonTheme, ButtonSize } from "./Button";
+import { SwitchBox } from "./SwitchBox";
 
 export default function Profile() {
   const { data, error, isLoading } = useGetCurrentUserQuery();
