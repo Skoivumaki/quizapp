@@ -66,7 +66,7 @@ export default function PlayerPage() {
         justify="between"
         align="center"
         gap="4"
-        className="w-full bg-gray-800 p-4 rounded"
+        className="w-full p-4 rounded"
       >
         GAMEMODE SELECTION
       </Container>
@@ -76,7 +76,7 @@ export default function PlayerPage() {
         justify="between"
         align="center"
         gap="4"
-        className="w-full bg-gray-800 p-4 rounded"
+        className="w-full p-4 rounded"
       >
         <>
           <SwitchBox
@@ -115,7 +115,7 @@ export default function PlayerPage() {
             justify="between"
             align="center"
             gap="4"
-            className="w-full bg-gray-800 p-4 rounded"
+            className="w-full p-4 rounded"
           >
             <GameSettings
               limit={limit}
@@ -136,7 +136,7 @@ export default function PlayerPage() {
             justify="between"
             align="center"
             gap="4"
-            className="w-full bg-gray-800 p-4 rounded"
+            className="w-full p-4 rounded"
           >
             <SelectedPlaylistInfo
               playlistId={selectedPlaylistId}
