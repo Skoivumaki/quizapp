@@ -1,6 +1,5 @@
 "use client";
 
-import SpotifyPlayer from "../components/SpotifyPlayer";
 import Playlists from "../components/Playlists";
 import Link from "next/link";
 import { useAccessToken } from "../providers";
@@ -34,6 +33,7 @@ export default function PlayerPage() {
   >(null);
   const [limit, setLimit] = useState<number>(20);
   const [seek, setSeek] = useState<number>(0);
+  const [length, setLength] = useState<number>(600000);
   const [random, setRandom] = useState<boolean>(false);
   const [internalPlayer, setInternalPlayer] = useState<boolean>(true);
 
@@ -122,6 +122,8 @@ export default function PlayerPage() {
               setLimit={setLimit}
               seek={seek}
               setSeek={setSeek}
+              setLength={setLength}
+              length={length}
               random={random}
               setRandom={setRandom}
               internalPlayer={internalPlayer}
