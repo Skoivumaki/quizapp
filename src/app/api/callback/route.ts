@@ -28,7 +28,8 @@ export async function GET(req: NextRequest) {
   if ("error" in data) return NextResponse.redirect("/error");
 
   const expiresAt = Date.now() + data.expires_in * 1000;
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://127.0.0.1:3000";
+  const baseUrl =
+    process.env.NEXT_PUBLIC_BASE_URL || "http://127.0.0.1:3000/quiz";
 
   const res = NextResponse.redirect(baseUrl);
 

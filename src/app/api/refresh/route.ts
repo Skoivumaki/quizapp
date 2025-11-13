@@ -5,7 +5,8 @@ export async function GET() {
   try {
     const cookieStore = await cookies();
     const refreshToken = cookieStore.get("spotify_refresh_token")?.value;
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://127.0.0.1:3000";
+    const baseUrl =
+      process.env.NEXT_PUBLIC_BASE_URL || "http://127.0.0.1:3000/quiz";
 
     if (!refreshToken) {
       console.error("No refresh token cookie found");
