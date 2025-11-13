@@ -4,6 +4,7 @@ import { ButtonHTMLAttributes, forwardRef, LegacyRef, memo } from "react";
 
 export enum ButtonTheme {
   PRIMARY = "primary",
+  PRIMARY2 = "primary2",
   CLEAR = "clear",
   INVERT = "outline",
 }
@@ -39,6 +40,8 @@ export const Button = memo(
         "inline-flex items-center justify-center font-semibold rounded-4xl transition-all duration-200 ease-out active:scale-95 focus:scale-102";
 
       const themeClasses = {
+        [ButtonTheme.PRIMARY2]:
+          "bg-gradient-to-bl from-indigo-400 via-purple-400 via-30% to-pink-400 to-90%",
         [ButtonTheme.PRIMARY]:
           "bg-green-500 border-2 border-green-500 text-black focus:bg-black focus:text-green-500",
         [ButtonTheme.CLEAR]:

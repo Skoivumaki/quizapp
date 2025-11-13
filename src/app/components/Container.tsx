@@ -23,7 +23,7 @@ export const Container: React.FC<ContainerProps> = ({
   return (
     <div
       className={clsx(
-        "flex",
+        "relative flex overflow-hidden bg-gray-800",
         direction === "col" ? "flex-col" : "flex-row",
         wrap && "flex-wrap",
         `justify-${justify}`,
