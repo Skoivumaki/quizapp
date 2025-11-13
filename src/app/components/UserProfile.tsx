@@ -8,7 +8,7 @@ export default function Profile() {
   const { data, error, isLoading } = useGetCurrentUserQuery();
 
   if (isLoading) return <p>Loading...</p>;
-  if (error) return <p>Error loading profile</p>;
+  if (error) return <p>User is not logged in</p>;
 
   return (
     <div>
