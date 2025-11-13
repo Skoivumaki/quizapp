@@ -1,4 +1,7 @@
 @import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @theme {
   @keyframes fade-in {
@@ -29,7 +32,7 @@
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
+    --background: oklch(13% 0.028 261.692);
     --foreground: #ededed;
   }
 }
