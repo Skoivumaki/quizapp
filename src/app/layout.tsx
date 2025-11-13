@@ -128,7 +128,8 @@ export default async function RootLayout({
   const expiresAt = expiresAtString ? Number(expiresAtString) : 0;
   const isExpired = now > expiresAt;
 
-  if (isExpired) {
+  if (isExpired && accessToken) {
+    console.log("REFRESH: Expired token and has accessToken");
     redirect("/api/refresh");
   }
 
