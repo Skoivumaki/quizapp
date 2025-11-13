@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Providers, TokenProvider } from "./providers";
 import { cookies } from "next/dist/server/request/cookies";
@@ -15,9 +15,104 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const baseUrl =
+  process.env.NEXT_PUBLIC_BASE_URL || "http://127.0.0.1:3000/quiz";
+
 export const metadata: Metadata = {
-  title: "Quiz App",
-  description: "Quiz App using Next.js and Spotify API",
+  metadataBase: new URL(baseUrl),
+  applicationName: "Quiz App",
+  title: {
+    default: "Quiz App",
+    template: "%s | Quiz App",
+  },
+  description:
+    "Play fast, customizable music‑guessing games with friends or solo with the power of your playlists and favorite songs. Quiz App is not affiliated with Spotify.",
+  keywords: [
+    "music quiz",
+    "guess the song",
+    "music trivia",
+    "spotify game",
+    "party game",
+  ],
+  authors: [{ name: "Koivumäki Digital Solutions", url: baseUrl }],
+  creator: "Koivumäki Digital Solutions",
+  publisher: "Koivumäki Digital Solutions",
+  generator: "Next.js",
+  category: "Games",
+  robots: {
+    index: true,
+    follow: true,
+    nocache: false,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    url: baseUrl,
+    title: "Quiz App — Guess the Song with Friends",
+    description:
+      "Turn your playlists into a party. Host live lobbies or play solo—powered by Spotify.",
+    siteName: "Quiz App",
+    images: [
+      {
+        url: `${baseUrl}/og/quiz-app-og.png`,
+        width: 1200,
+        height: 630,
+        alt: "Quiz App — Music Guessing Game",
+      },
+    ],
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Quiz App — Music Guessing Game",
+    description:
+      "Guess songs, artists and genres integrated with your Spotify.",
+    creator: "@yourhandle",
+    images: [`${baseUrl}/og/quiz-app-og.png`],
+  },
+  icons: {
+    icon: [
+      { url: "/icons/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icons/favicon-16.png", sizes: "16x16", type: "image/png" },
+    ],
+    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
+    shortcut: ["/favicon.ico"],
+  },
+  manifest: "/site.webmanifest",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#111111" },
+  ],
+  colorScheme: "light dark",
+  appleWebApp: {
+    capable: true,
+    title: "Quiz App",
+    statusBarStyle: "default",
+  },
+  formatDetection: {
+    telephone: false,
+    email: false,
+    address: false,
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  // themeColor: [
+  //   { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+  //   { media: "(prefers-color-scheme: dark)", color: "#111111" },
+  // ],
 };
 
 export default async function RootLayout({
@@ -33,7 +128,7 @@ export default async function RootLayout({
   const expiresAt = expiresAtString ? Number(expiresAtString) : 0;
   const isExpired = now > expiresAt;
 
-  if (!accessToken || isExpired) {
+  if (isExpired) {
     redirect("/api/refresh");
   }
 
