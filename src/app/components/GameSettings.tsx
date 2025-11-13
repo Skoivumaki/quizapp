@@ -175,7 +175,7 @@ export default function GameSettings({
         </label> */}
         <label className="flex flex-col gap-2">
           <InfoHeader
-            label="Use Internal Player"
+            label="Audio Playback"
             value={showInternalPlayerInfo}
             onToggle={handleToggleInfo}
           />
