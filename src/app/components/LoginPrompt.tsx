@@ -4,7 +4,7 @@ import { Button } from "./Button";
 
 export default function LoginPrompt() {
   const handleLogin = () => {
-    window.location.href = "/api/login";
+    window.location.href = "/quiz/api/login";
   };
 
   return (
