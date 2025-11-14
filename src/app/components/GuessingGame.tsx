@@ -249,6 +249,13 @@ export default function GuessingGame({
 
       {showAnswer && currentTrack && (
         <div style={{ textAlign: "center" }}>
+                    <p>
+            <strong>{currentTrack.name}</strong>
+          </p>
+          <p>{currentTrack.artist}</p>
+          <p>
+            <em>{currentTrack.album}</em>
+          </p>
           {currentTrack.image && (
             <img
               src={currentTrack.image}
@@ -260,13 +267,6 @@ export default function GuessingGame({
               }}
             />
           )}
-          <p>
-            <strong>{currentTrack.name}</strong>
-          </p>
-          <p>{currentTrack.artist}</p>
-          <p>
-            <em>{currentTrack.album}</em>
-          </p>
         </div>
       )}
 
