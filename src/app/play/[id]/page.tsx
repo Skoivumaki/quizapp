@@ -48,17 +48,16 @@ export default function PlayPage() {
   const [showScoreboard, setShowScoreboard] = useState(true);
 
   useEffect(() => {
-    if (!internalPlayer || !accessToken || typeof window === "undefined")
-      return;
+    if (!accessToken || !internalPlayer) return;
     if (spotifyPlayer) return;
 
-    const existing = document.getElementById("spotify-player-sdk");
-    if (!existing) {
-      const script = document.createElement("script");
-      script.id = "spotify-player-sdk";
-      script.src = "https://sdk.scdn.co/spotify-player.js";
-      script.async = true;
-      document.body.appendChild(script);
+    const script = document.getElementById("spotify-player-sdk");
+    if (!script) {
+      const el = document.createElement("script");
+      el.id = "spotify-player-sdk";
+      el.src = "https://sdk.scdn.co/spotify-player.js";
+      el.async = true;
+      document.body.appendChild(el);
     }
 
     window.onSpotifyWebPlaybackSDKReady = () => {
@@ -68,20 +67,14 @@ export default function PlayPage() {
         volume: 0.8,
       });
 
-      setSpotifyPlayer(player);
-
       player.addListener("ready", ({ device_id }) => {
-        console.log("Spotify Player ready with Device ID:", device_id);
+        console.log("Ready with Device ID:", device_id);
         setSpotifyDeviceId(device_id);
       });
 
-      player.addListener("not_ready", ({ device_id }) => {
-        console.warn("Spotify Player not ready:", device_id);
-      });
-
-      player.connect();
+      setSpotifyPlayer(player);
     };
-  }, [internalPlayer, accessToken, spotifyPlayer]);
+  }, [accessToken, internalPlayer, spotifyPlayer]);
 
   useEffect(() => {
     if (gameStatus === "answer_shown") setCanScore(true);
