@@ -128,7 +128,8 @@ export default function PlayPage() {
               tracks. Limit: <strong>{limitParam}</strong> | Seek Start:{" "}
               <strong>{seekParam}ms </strong> | Status: {gameStatus}
               {isScoreboardVisible && <span> | Scoreboard: Visible</span>}
-              {showScoreboard && <span> | Scoreboard: Shown</span>}
+              {showScoreboard && <span> | Scoreboard: Shown </span>}
+              {accessToken}
             </p>
           </>
         )}
