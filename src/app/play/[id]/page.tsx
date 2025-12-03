@@ -21,6 +21,7 @@ declare global {
 export interface SpotifyPlayer {
   addListener: (event: string, callback: (data: unknown) => void) => void;
   connect: () => void;
+  disconnect: () => void;
 }
 
 export default function PlayPage() {
@@ -43,6 +44,13 @@ export default function PlayPage() {
   const [spotifyPlayer, setSpotifyPlayer] = useState<SpotifyPlayer | null>(
     null
   );
+
+  useEffect(() => {
+    return () => {
+      if (spotifyPlayer) spotifyPlayer.disconnect();
+    };
+  }, [spotifyPlayer]);
+
   const [gameStatus, setGameStatus] = useState("loading");
   const [canScore, setCanScore] = useState(false);
   const [showScoreboard, setShowScoreboard] = useState(true);
