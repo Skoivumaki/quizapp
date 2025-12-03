@@ -11,6 +11,7 @@ import GameSettings from "../components/GameSettings";
 import { Container } from "../components/Container";
 import { Button, ButtonSize, ButtonTheme } from "../components/Button";
 import { SwitchBox } from "../components/SwitchBox";
+import { toast } from "react-toastify";
 
 export default function PlayerPage() {
   const accessToken = useAccessToken();
@@ -57,6 +58,7 @@ export default function PlayerPage() {
     ? `/play/${selectedPlaylistId}?limit=${limit}&seek=${seek}&random=${random}&internalPlayer=${internalPlayer}`
     : "#";
 
+  const notify = () => toast("Wow so easy!");
   return (
     <div className="w-screen p-4 flex flex-col items-center gap-4">
       <h1 className="text-center font-bold text-2xl">Quiz Setup</h1>
@@ -69,6 +71,7 @@ export default function PlayerPage() {
         className="w-full p-4 rounded"
       >
         GAMEMODE SELECTION
+        <button onClick={notify}>Toast test</button>
       </Container>
 
       <Container

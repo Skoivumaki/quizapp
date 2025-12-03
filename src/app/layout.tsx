@@ -4,6 +4,7 @@ import { Providers, TokenProvider } from "./providers";
 import { cookies } from "next/dist/server/request/cookies";
 import { redirect } from "next/dist/client/components/navigation";
 import "./globals.css";
+import { ToastContainer } from "react-toastify";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -104,10 +105,6 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  // themeColor: [
-  //   { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-  //   { media: "(prefers-color-scheme: dark)", color: "#111111" },
-  // ],
 };
 
 export default async function RootLayout({
@@ -133,6 +130,7 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <ToastContainer />
         <Providers>
           <TokenProvider accessToken={accessToken}>{children}</TokenProvider>
         </Providers>
