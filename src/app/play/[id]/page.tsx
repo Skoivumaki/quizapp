@@ -9,6 +9,7 @@ import GuessingGame from "@/app/components/GuessingGame";
 import { useEffect, useState } from "react";
 import Scoreboard from "@/app/components/Scoreboard";
 import Link from "next/link";
+import { Button, ButtonSize, ButtonTheme } from "@/app/components/Button";
 
 declare global {
   interface Window {
@@ -133,15 +134,25 @@ export default function PlayPage() {
             </p>
           </>
         )}
-        <GuessingGame
-          tracks={formattedTracks}
-          playlistName={data?.name}
-          accessToken={accessToken}
-          onStatusChange={setGameStatus}
-          seek={seekParam}
-          random={isRandom}
-          deviceId={spotifyDeviceId}
-        />
+        {spotifyPlayer && !spotifyDeviceId ? (
+          <Button
+            theme={ButtonTheme.PRIMARY}
+            size={ButtonSize.L}
+            onClick={() => spotifyPlayer.connect()}
+          >
+            Connect Spotify Player
+          </Button>
+        ) : (
+          <GuessingGame
+            tracks={formattedTracks}
+            playlistName={data?.name}
+            accessToken={accessToken}
+            onStatusChange={setGameStatus}
+            seek={seekParam}
+            random={isRandom}
+            deviceId={spotifyDeviceId}
+          />
+        )}
       </div>
       {!isScoreboardVisible && (
         <button
