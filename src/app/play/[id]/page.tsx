@@ -86,6 +86,13 @@ export default function PlayPage() {
     gameStatus === "answer_shown" || gameStatus === "finished";
   const [showDebugInfo, setShowDebugInfo] = useState(false);
 
+  const handleStartPlayback = async () => {
+    if (!spotifyPlayer) return;
+
+    const connected = await spotifyPlayer.connect();
+    console.log("connect() returned:", connected);
+  };
+
   if (isLoading) return <p>Loading playlist...</p>;
 
   return (
@@ -131,7 +138,7 @@ export default function PlayPage() {
           <Button
             theme={ButtonTheme.PRIMARY}
             size={ButtonSize.L}
-            onClick={() => spotifyPlayer.connect()}
+            onClick={handleStartPlayback}
           >
             Connect Spotify Player
           </Button>
