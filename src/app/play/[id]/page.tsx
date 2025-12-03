@@ -19,6 +19,7 @@ declare global {
 }
 
 export interface SpotifyPlayer {
+  activateElement?: () => Promise<void> | void;
   addListener: (event: string, callback: (data: unknown) => void) => void;
   connect: () => void;
   disconnect: () => void;
@@ -75,10 +76,17 @@ export default function PlayPage() {
         volume: 0.8,
       });
 
+      // attach listeners right away
       player.addListener("ready", ({ device_id }) => {
-        console.log("Ready with Device ID:", device_id);
+        console.log("ready ->", device_id);
         setSpotifyDeviceId(device_id);
       });
+      player.addListener("not_ready", ({ device_id }) =>
+        console.warn("not_ready:", device_id)
+      );
+      player.addListener("initialization_error", (e) => console.error(e));
+      player.addListener("authentication_error", (e) => console.error(e));
+      player.addListener("account_error", (e) => console.error(e));
 
       setSpotifyPlayer(player);
     };
@@ -97,8 +105,10 @@ export default function PlayPage() {
   const handleStartPlayback = async () => {
     if (!spotifyPlayer) return;
 
-    const connected = await spotifyPlayer.connect();
-    console.log("connect() returned:", connected);
+    if (spotifyPlayer.activateElement) await spotifyPlayer.activateElement();
+
+    const ok = await spotifyPlayer.connect();
+    console.log("connect returned:", ok);
   };
 
   if (isLoading) return <p>Loading playlist...</p>;
