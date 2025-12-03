@@ -87,7 +87,11 @@ export default function PlayPage() {
       });
       player.addListener("initialization_error", (e: any) => {
         console.error("Initialization error", e);
-        toast.error(`Spotify init error: ${e.message || e}`);
+        toast.error(
+          `Spotify init error: ${
+            e.message || e
+          } Your browser may not be supported. Please use External Player mode instead.`
+        );
       });
       player.addListener("authentication_error", (e: any) => {
         console.error("Auth error", e);
