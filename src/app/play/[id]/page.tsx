@@ -3,8 +3,6 @@
 import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-
 import { useAccessToken } from "../../providers";
 import { useGetPlaylistQuery } from "@/quizApi";
 import { useFormattedTracks } from "@/hooks/useFormatTracks";
