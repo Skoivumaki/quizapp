@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useGetCurrentUserQuery, useGetUserPlaylistsQuery } from "@/quizApi";
+import { useGetCurrentUserQuery, useGetUserPlaylistsQuery } from "@/spotifyApi";
 import PlaylistItem from "./PlaylistItem";
 import { Button } from "./Button";
 

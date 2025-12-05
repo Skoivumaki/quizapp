@@ -1,5 +1,5 @@
 "use client";
-import { useSearchPlaylistsQuery } from "@/quizApi";
+import { useSearchPlaylistsQuery } from "@/spotifyApi";
 import PlaylistItem from "./PlaylistItem";
 import { useState } from "react";
 

@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { usePlayTrackMutation } from "@/quizApi";
+import { usePlayTrackMutation } from "@/spotifyApi";
 import { Button, ButtonSize, ButtonTheme } from "./Button";
 import Link from "next/link";
 
@@ -249,7 +249,7 @@ export default function GuessingGame({
 
       {showAnswer && currentTrack && (
         <div style={{ textAlign: "center" }}>
-                    <p>
+          <p>
             <strong>{currentTrack.name}</strong>
           </p>
           <p>{currentTrack.artist}</p>

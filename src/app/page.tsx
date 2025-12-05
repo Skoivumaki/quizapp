@@ -81,7 +81,7 @@ export default async function PlayerPage() {
             className="w-full p-4 rounded"
           >
             <h1>{"PROFILE INFO"}</h1>
-            <UserProfile />
+            <UserProfile accessToken={accessToken} />
           </Container>
           <Container
             direction="col"

@@ -1,6 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
 import "./App.css";
+import { useSaveSpotifyUserMutation } from "@/quizApi";
+
+const baseUrl = process.env.NEXT_PUBLIC_API_URI || "http://127.0.0.1:3000/";
 
 const ProductDisplay = () => (
   <section>
@@ -11,10 +14,7 @@ const ProductDisplay = () => (
         <h5>€10.00 / year</h5>
       </div>
     </div>
-    <form
-      action={`${process.env.NEXT_PUBLIC_API_URI}/create-checkout-session`}
-      method="POST"
-    >
+    <form action={`${baseUrl}/create-checkout-session`} method="POST">
       {/* Add a hidden field with the lookup_key of your Price */}
       <input type="hidden" name="lookup_key" value="Quiz_App_Pro-1f34ad5" />
       <button id="checkout-and-portal-button" type="submit">
@@ -33,10 +33,7 @@ const SuccessDisplay = ({ sessionId }) => {
           <h3>Subscription to Quiz App Pro successful!</h3>
         </div>
       </div>
-      <form
-        action={`${process.env.NEXT_PUBLIC_API_URI}/create-portal-session`}
-        method="POST"
-      >
+      <form action={`${baseUrl}/create-portal-session`} method="POST">
         <input
           type="hidden"
           id="session-id"
@@ -58,17 +55,35 @@ const Message = ({ message }) => (
 );
 
 export default function App() {
-  let [message, setMessage] = useState("");
-  let [success, setSuccess] = useState(false);
-  let [sessionId, setSessionId] = useState("");
+  const [message, setMessage] = useState("");
+  const [success, setSuccess] = useState(false);
+  const [sessionId, setSessionId] = useState("");
+  const [
+    saveSpotifyUser,
+    { data: saveData, isLoading: saveLoading, error: saveError },
+  ] = useSaveSpotifyUserMutation();
 
   useEffect(() => {
     // Check to see if this is a redirect back from Checkout
     const query = new URLSearchParams(window.location.search);
 
+    if (!accessToken) {
+      setSuccess(false);
+      setMessage("You need to be logged in to make a purchase.");
+    }
+
+    if (accessToken) {
+      saveSpotifyUser({ accessToken });
+    }
+
     if (query.get("success")) {
       setSuccess(true);
-      setSessionId(query.get("session_id"));
+      // setSessionId(query.get("session_id"));
+      if (!saveData.id) {
+        setSuccess(false);
+        setMessage("Something went wrong.");
+      }
+      setSessionId(saveData.id);
     }
 
     if (query.get("canceled")) {
@@ -77,7 +92,7 @@ export default function App() {
         "Order canceled -- continue to shop around and checkout when you're ready."
       );
     }
-  }, [sessionId]);
+  }, [saveData.id, saveSpotifyUser, sessionId]);
 
   if (!success && message === "") {
     return <ProductDisplay />;

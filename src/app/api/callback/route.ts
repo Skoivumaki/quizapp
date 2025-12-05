@@ -1,6 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SpotifyTokenResponse } from "@/types/spotify";
 
+async function notifyBackend(accessToken: string) {
+  console.log("Notifying backend of new Spotify user...");
+  const url =
+    (process.env.NEXT_PUBLIC_API_URI || "http://localhost:4242") +
+    "/auth/spotify/save";
+  console.log(`Sending POST request to: ${url}`);
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ accessToken: accessToken }),
+    });
+    console.log(response.body);
+    console.log(`Backend response status: ${response.status}`);
+    const text = await response.text();
+    console.log(`Backend response body: ${text}`);
+  } catch (error) {
+    console.error("Error notifying backend:", error);
+  }
+}
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const code = searchParams.get("code");
@@ -28,11 +50,12 @@ export async function GET(req: NextRequest) {
   if ("error" in data) return NextResponse.redirect("/error");
 
   const expiresAt = Date.now() + data.expires_in * 1000;
-  const baseUrl =
-    process.env.NEXT_PUBLIC_BASE_URL || "http://127.0.0.1:3000/quiz";
 
-  const res = NextResponse.redirect(baseUrl);
+  const res = NextResponse.redirect(
+    process.env.NEXT_PUBLIC_BASE_URL || "http://127.0.0.1:3000/quiz"
+  );
 
+  // Set cookies BEFORE notifying backend
   res.cookies.set("spotify_access_token", data.access_token, {
     httpOnly: true,
     secure: true,
@@ -57,6 +80,8 @@ export async function GET(req: NextRequest) {
       path: "/",
     });
   }
+
+  notifyBackend(data.access_token);
 
   return res;
 }

@@ -4,7 +4,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { useAccessToken } from "../../providers";
-import { useGetPlaylistQuery } from "@/quizApi";
+import { useGetPlaylistQuery } from "@/spotifyApi";
 import { useFormattedTracks } from "@/hooks/useFormatTracks";
 import UserProfile from "@/app/components/UserProfile";
 import GuessingGame from "@/app/components/GuessingGame";

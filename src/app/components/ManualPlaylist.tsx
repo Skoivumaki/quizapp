@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useGetPlaylistQuery } from "@/quizApi";
+import { useGetPlaylistQuery } from "@/spotifyApi";
 
 interface ManualPlaylistInputProps {
   onSelect: (
