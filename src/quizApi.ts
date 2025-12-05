@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export const quizApi = createApi({
   reducerPath: "quizApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_API_URI || "http://localhost:4242/",
+    baseUrl: process.env.NEXT_PUBLIC_API_URI || "http://127.0.0.1:4242/",
     credentials: "include",
     prepareHeaders: (headers) => {
       headers.set("Content-Type", "application/json");

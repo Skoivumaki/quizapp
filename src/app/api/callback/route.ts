@@ -4,7 +4,7 @@ import { SpotifyTokenResponse } from "@/types/spotify";
 async function notifyBackend(accessToken: string) {
   console.log("Notifying backend of new Spotify user...");
   const url =
-    (process.env.NEXT_PUBLIC_API_URI || "http://localhost:4242") +
+    (process.env.NEXT_PUBLIC_API_URI || "http://127.0.0.1:4242") +
     "/auth/spotify/save";
   console.log(`Sending POST request to: ${url}`);
   try {
@@ -54,15 +54,26 @@ export async function GET(req: NextRequest) {
   const res = NextResponse.redirect(
     process.env.NEXT_PUBLIC_BASE_URL || "http://127.0.0.1:3000/quiz"
   );
-
+  // domain: `.${process.env.NEXT_PUBLIC_BASE_URL}` ||
   // Set cookies BEFORE notifying backend
-  res.cookies.set("spotify_access_token", data.access_token, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "lax",
-    maxAge: data.expires_in,
-    path: "/",
-  });
+  if (process.env.NEXT_PUBLIC_BASE_URL) {
+    res.cookies.set("spotify_access_token", data.access_token, {
+      domain: `.${process.env.NEXT_PUBLIC_BASE_URL}`,
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+      maxAge: data.expires_in,
+      path: "/",
+    });
+  } else {
+    res.cookies.set("spotify_access_token", data.access_token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: data.expires_in,
+      path: "/",
+    });
+  }
 
   res.cookies.set("spotify_token_expires_at", expiresAt.toString(), {
     httpOnly: true,
