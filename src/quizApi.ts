@@ -12,11 +12,10 @@ export const quizApi = createApi({
   }),
   endpoints: (builder) => ({
     // Should send cookies instead of body
-    saveSpotifyUser: builder.mutation<any, { accessToken: string }>({
-      query: ({ accessToken }) => ({
+    saveSpotifyUser: builder.mutation<any>({
+      query: () => ({
         url: "auth/spotify/save",
         method: "POST",
-        body: { accessToken },
       }),
     }),
   }),
