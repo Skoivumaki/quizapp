@@ -6,6 +6,8 @@ import { toast } from "react-toastify";
 import { useAccessToken } from "../../providers";
 import { useGetPlaylistQuery } from "@/spotifyApi";
 import { useFormattedTracks } from "@/hooks/useFormatTracks";
+import { useMixedPlaylists } from "@/hooks/useMixedPlaylists";
+
 import UserProfile from "@/app/components/UserProfile";
 import GuessingGame from "@/app/components/GuessingGame";
 import Scoreboard from "@/app/components/Scoreboard";
@@ -28,19 +30,43 @@ export interface SpotifyPlayer {
 export default function PlayPage() {
   const accessToken = useAccessToken();
   const { id } = useParams();
-  const searchParams = useSearchParams();
 
+  const searchParams = useSearchParams();
   const limitParam = Number(searchParams.get("limit")) || 20;
   const seekParam = Number(searchParams.get("seek")) || 0;
+  const selectedPlaylistId2 = searchParams.get("playlist2");
   const isRandom = searchParams.get("random") === "true";
   const internalPlayer = searchParams.get("internalPlayer") === "true";
 
-  const { data, isLoading } = useGetPlaylistQuery(id as string);
-  const formattedTracks = useFormattedTracks(data?.tracks.items, {
-    shuffle: true,
-    limit: limitParam,
+  // --- always call hooks in a consistent order
+  const singlePlaylistQuery = useGetPlaylistQuery(id as string, {
+    skip: !!selectedPlaylistId2, // skip if we’ll be using mixed
   });
 
+  const mixedPlaylistQuery = useMixedPlaylists(
+    id as string,
+    selectedPlaylistId2,
+    { shuffle: true, limit: limitParam }
+  );
+
+  // --- pick which data to use based on id2
+  const isUsingMixed = !!selectedPlaylistId2;
+  const isLoading = isUsingMixed
+    ? mixedPlaylistQuery.isLoading
+    : singlePlaylistQuery.isLoading;
+
+  const formattedTracks = isUsingMixed
+    ? mixedPlaylistQuery.tracks
+    : useFormattedTracks(singlePlaylistQuery.data?.tracks.items, {
+        shuffle: true,
+        limit: limitParam,
+      });
+
+  const data = isUsingMixed
+    ? { name: "Mixed Playlist" } // or combine both names later
+    : singlePlaylistQuery.data;
+
+  // --- Spotify SDK setup
   const [spotifyDeviceId, setSpotifyDeviceId] = useState<string | null>(null);
   const [spotifyPlayer, setSpotifyPlayer] = useState<SpotifyPlayer | null>(
     null
@@ -52,13 +78,8 @@ export default function PlayPage() {
     };
   }, [spotifyPlayer]);
 
-  const [gameStatus, setGameStatus] = useState("loading");
-  const [canScore, setCanScore] = useState(false);
-  const [showScoreboard, setShowScoreboard] = useState(true);
-
   useEffect(() => {
-    if (!accessToken || !internalPlayer) return;
-    if (spotifyPlayer) return;
+    if (!accessToken || !internalPlayer || spotifyPlayer) return;
 
     const script = document.getElementById("spotify-player-sdk");
     if (!script) {
@@ -76,7 +97,6 @@ export default function PlayPage() {
         volume: 0.8,
       });
 
-      // attach listeners
       player.addListener("ready", ({ device_id }: any) => {
         setSpotifyDeviceId(device_id);
         console.log(`Spotify player ready (${device_id})`);
@@ -87,11 +107,7 @@ export default function PlayPage() {
       });
       player.addListener("initialization_error", (e: any) => {
         console.error("Initialization error", e);
-        toast.error(
-          `Spotify init error: ${
-            e.message || e
-          } Your browser may not be supported. Please use External Player mode instead.`
-        );
+        toast.error(`Spotify init error: ${e.message || e}`);
       });
       player.addListener("authentication_error", (e: any) => {
         console.error("Auth error", e);
@@ -106,6 +122,12 @@ export default function PlayPage() {
     };
   }, [accessToken, internalPlayer, spotifyPlayer]);
 
+  // --- game logic
+  const [gameStatus, setGameStatus] = useState("loading");
+  const [canScore, setCanScore] = useState(false);
+  const [showScoreboard, setShowScoreboard] = useState(true);
+  const [showDebugInfo, setShowDebugInfo] = useState(false);
+
   useEffect(() => {
     setCanScore(gameStatus === "answer_shown");
   }, [gameStatus]);
@@ -113,14 +135,12 @@ export default function PlayPage() {
   const handleConsumeScore = () => setCanScore(false);
   const isScoreboardVisible =
     gameStatus === "answer_shown" || gameStatus === "finished";
-  const [showDebugInfo, setShowDebugInfo] = useState(false);
 
   const handleStartPlayback = async () => {
     if (!spotifyPlayer) {
       toast.error("Spotify Player not initialized yet!");
       return;
     }
-
     if (spotifyPlayer.activateElement) await spotifyPlayer.activateElement();
 
     try {
@@ -138,6 +158,7 @@ export default function PlayPage() {
 
   if (isLoading) return <p>Loading playlist...</p>;
 
+  // --- render UI
   return (
     <>
       <div
@@ -155,6 +176,7 @@ export default function PlayPage() {
         <button onClick={() => setShowDebugInfo((prev) => !prev)}>
           Toggle Debug Info
         </button>
+
         {showDebugInfo && (
           <>
             {internalPlayer && (
@@ -165,17 +187,16 @@ export default function PlayPage() {
                   : "(initializing…)"}
               </div>
             )}
-
-            <UserProfile />
             <p>
               Playlist loaded with <strong>{formattedTracks.length}</strong>{" "}
-              tracks. Limit: <strong>{limitParam}</strong> | Seek Start:{" "}
+              tracks. Limit: <strong>{limitParam}</strong> | Seek Start:
               <strong>{seekParam}ms </strong> | Status: {gameStatus}
               {isScoreboardVisible && <span> | Scoreboard: Visible</span>}
               {showScoreboard && <span> | Scoreboard: Shown </span>}
             </p>
           </>
         )}
+
         {spotifyPlayer && !spotifyDeviceId ? (
           <Button
             theme={ButtonTheme.PRIMARY}

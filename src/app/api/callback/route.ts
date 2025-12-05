@@ -5,7 +5,7 @@ async function notifyBackend(accessToken: string) {
   console.log("Notifying backend of new Spotify user...");
   const url =
     (process.env.NEXT_PUBLIC_API_URI || "http://127.0.0.1:4242") +
-    "/auth/spotify/save";
+    "/auth/spotify/profile";
   console.log(`Sending POST request to: ${url}`);
   try {
     const response = await fetch(url, {

@@ -14,7 +14,7 @@ export const quizApi = createApi({
     // Should send cookies instead of body
     saveSpotifyUser: builder.mutation<any>({
       query: () => ({
-        url: "auth/spotify/save",
+        url: "auth/spotify/profile",
         method: "POST",
       }),
     }),
