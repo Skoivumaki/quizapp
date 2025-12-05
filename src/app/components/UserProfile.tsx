@@ -31,7 +31,7 @@ export default function Profile(accessToken: string) {
         )}
       </div>
       <p>{data.email}</p>
-      <p>{data.id}</p>
+      <p>{saveData?.id}</p>
     </div>
   );
 }
