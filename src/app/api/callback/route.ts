@@ -58,7 +58,15 @@ export async function GET(req: NextRequest) {
   // Set cookies BEFORE notifying backend
   if (process.env.NEXT_PUBLIC_BASE_URL) {
     res.cookies.set("spotify_access_token", data.access_token, {
-      domain: `.${process.env.NEXT_PUBLIC_BASE_URL}`,
+      domain: ".thshosting.xyz",
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+      maxAge: data.expires_in,
+      path: "/",
+    });
+	
+	  res.cookies.set("production", process.env.NEXT_PUBLIC_BASE_URL, {
       httpOnly: true,
       secure: true,
       sameSite: "lax",
