@@ -7,8 +7,6 @@ import { useAccessToken } from "../../providers";
 import { useGetPlaylistQuery } from "@/spotifyApi";
 import { useFormattedTracks } from "@/hooks/useFormatTracks";
 import { useMixedPlaylists } from "@/hooks/useMixedPlaylists";
-
-import UserProfile from "@/app/components/UserProfile";
 import GuessingGame from "@/app/components/GuessingGame";
 import Scoreboard from "@/app/components/Scoreboard";
 import { Button, ButtonSize, ButtonTheme } from "@/app/components/Button";
@@ -156,9 +154,23 @@ export default function PlayPage() {
     }
   };
 
-  if (isLoading) return <p>Loading playlist...</p>;
+  if (isLoading) return;
+  <>
+    <div
+      style={{
+        color: "white",
+        padding: "1rem",
+        textAlign: "center",
+        display: "flex",
+        flexDirection: "column",
+        height: "100vh",
+        maxHeight: "100vh",
+        overflow: "clip",
+      }}
+    ></div>
+    <p>Loading playlist...</p>
+  </>;
 
-  // --- render UI
   return (
     <>
       <div
@@ -222,7 +234,7 @@ export default function PlayPage() {
         <button
           onClick={() => setShowScoreboard((prev) => !prev)}
           title={showScoreboard ? "Hide Scoreboard" : "Show Scoreboard"}
-          className="text-gray-400 text-sm hover:text-white transition-colors w-full text-center p-2 bottom-0 fixed bg-neutral-900 rounded-lg"
+          className="text-gray-400 text-sm hover:text-white transition-colors w-full text-center p-2 bottom-0 fixed bg-gray-800 rounded-lg"
         >
           Show Scoreboard
         </button>

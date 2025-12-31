@@ -7,6 +7,7 @@ export enum ButtonTheme {
   PRIMARY2 = "primary2",
   CLEAR = "clear",
   INVERT = "outline",
+  PRIMARY3 = "PRIMARY3",
 }
 
 export enum ButtonSize {
@@ -40,9 +41,10 @@ export const Button = memo(
         "inline-flex items-center justify-center font-semibold rounded-4xl transition-all duration-200 ease-out active:scale-95 focus:scale-102";
 
       const themeClasses = {
-        [ButtonTheme.PRIMARY2]:
+        [ButtonTheme.PRIMARY3]:
           "bg-gradient-to-bl from-indigo-400 via-purple-400 via-30% to-pink-400 to-90%",
-        [ButtonTheme.PRIMARY]:
+        [ButtonTheme.PRIMARY]: "bg-pink-400 focus:bg-purple-400",
+        [ButtonTheme.PRIMARY2]:
           "bg-green-500 border-2 border-green-500 text-black focus:bg-black focus:text-green-500",
         [ButtonTheme.CLEAR]:
           "bg-green-500/0 border-2 border-green-500 text-green-500 focus:text-white focus:ring-2 focus:ring-green-500",

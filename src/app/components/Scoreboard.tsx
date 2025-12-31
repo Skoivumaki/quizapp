@@ -90,7 +90,7 @@ export default function Scoreboard({
   };
 
   return (
-    <div className="flex flex-col items-center bg-neutral-900 rounded-lg p-4 text-white w-[90%] min-w-[340px]">
+    <div className="flex flex-col items-center bg-gray-800 rounded-lg p-4 text-white w-[90%] min-w-[340px]">
       <div className="w-full flex justify-between items-center mb-2 text-center">
         <h3 className="m-0 text-lg font-semibold w-full text-left">
           Scoreboard
@@ -112,14 +112,14 @@ export default function Scoreboard({
       </div>
 
       {showSettings && (
-        <div className="flex flex-col items-center bg-neutral-800 p-3 rounded-md w-full mb-3 gap-2 transition">
+        <div className="flex flex-col items-center bg-gray-700 p-3 rounded-md w-full mb-3 gap-2 transition">
           <div className="flex gap-2 w-full justify-center">
             <input
               type="text"
               placeholder="Add participant"
               value={newPlayer}
               onChange={(e) => setNewPlayer(e.target.value)}
-              className="flex-1 px-2 py-1 rounded border border-neutral-600 bg-neutral-700 text-white placeholder-gray-400"
+              className="flex-1 px-2 py-1 rounded border border-gray-800 bg-gray-800 text-white placeholder-gray-400"
             />
             <button
               onClick={addPlayer}
@@ -155,8 +155,8 @@ export default function Scoreboard({
               onClick={() => incrementScore(p.name)}
               className={`flex justify-between items-center px-3 py-2 rounded cursor-pointer font-medium transition ${
                 chosenPlayer === p.name
-                  ? "bg-green-500 text-black"
-                  : "bg-neutral-700 text-white"
+                  ? "bg-purple-400 text-black"
+                  : "bg-gray-700 text-white"
               } ${
                 canScore && !roundClaimed
                   ? "hover:bg-neutral-600"
@@ -164,13 +164,15 @@ export default function Scoreboard({
               }`}
             >
               <span>{p.name}</span>
-              <span className="text-green-400 font-bold">{p.points}</span>
+              <span className="text-pink-400 font-bold text-shadow-xs text-shadow-gray-700">
+                {p.points}
+              </span>
             </li>
           ))}
         </ul>
       )}
 
-      <p className="text-sm text-gray-400 mt-4 text-center">
+      <p className="text-sm text-purple-400 mt-4 text-center">
         {canScore
           ? roundClaimed
             ? "Point awarded this round"

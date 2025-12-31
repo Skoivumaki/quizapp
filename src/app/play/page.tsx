@@ -199,7 +199,7 @@ export default function PlayerPage() {
         </>
       </Container>
 
-      {selectedPlaylistId2 ? (
+      {selectedPlaylistId2 && (
         <>
           <h1 className="text-center font-bold text-2xl">
             Blending {selectedPlaylistName2}
@@ -221,8 +221,6 @@ export default function PlayerPage() {
             />
           </Container>
         </>
-      ) : (
-        <p className="text-green-400">No Playlist Selected</p>
       )}
 
       {selectedPlaylistId ? (

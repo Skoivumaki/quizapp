@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { usePlayTrackMutation } from "@/spotifyApi";
 import { Button, ButtonSize, ButtonTheme } from "./Button";
 import Link from "next/link";
+import UserInfo from "./UserInfo";
+import { toast } from "react-toastify";
 
 interface FormattedTrack {
   id: string;
@@ -12,6 +14,7 @@ interface FormattedTrack {
   image?: string;
   uri: string;
   duration_ms: number;
+  added_by_id: string;
 }
 
 interface GuessingGameProps {
@@ -38,6 +41,12 @@ export default function GuessingGame({
   const [hasStarted, setHasStarted] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
   const [playTrack, { isLoading, isError }] = usePlayTrackMutation();
+
+  if (isError) {
+    toast.error(
+      "Could not start playback (make sure you have an active Spotify device)"
+    );
+  }
 
   const currentTrack = tracks?.[currentIndex];
   const totalTracks = tracks?.length || 0;
@@ -138,12 +147,12 @@ export default function GuessingGame({
         gap: "1rem",
         padding: "1rem",
         borderRadius: "8px",
-        background: "#121212",
         color: "#fff",
         alignSelf: "center",
         minWidth: "340px",
         width: "90%",
       }}
+      className="bg-gray-800"
     >
       <h2>{playlistName || "Playlist"}</h2>
       <h3>{isFinished ? "Quiz Complete!" : "Guess the Track!"}</h3>
@@ -152,19 +161,19 @@ export default function GuessingGame({
         <div
           style={{
             width: "100%",
-            background: "#333",
             borderRadius: "6px",
             height: "8px",
             overflow: "hidden",
           }}
+          className="bg-gray-700"
         >
           <div
             style={{
               width: `${progressPercent}%`,
-              background: "#1ed760",
               height: "100%",
               transition: "width 0.4s ease",
             }}
+            className="bg-gradient-to-l from-indigo-400 via-purple-400 to-pink-400"
           ></div>
         </div>
       )}
@@ -173,8 +182,8 @@ export default function GuessingGame({
         <button
           onClick={handlePlay}
           disabled={isLoading}
+          className="bg-pink-400"
           style={{
-            background: "#1ed760",
             color: "#000",
             border: "none",
             padding: "0.5rem 1rem",
@@ -227,8 +236,8 @@ export default function GuessingGame({
       ) : isFinished ? null : (
         <button
           onClick={handleNextTrack}
+          className="bg-pink-400"
           style={{
-            background: "#1ed760",
             color: "#000",
             border: "none",
             padding: "0.5rem 1rem",
@@ -241,21 +250,20 @@ export default function GuessingGame({
         </button>
       )}
 
-      {isError && (
-        <p style={{ color: "red", fontSize: "0.9rem" }}>
-          Could not start playback (make sure you have an active Spotify device)
-        </p>
-      )}
-
       {showAnswer && currentTrack && (
-        <div style={{ textAlign: "center" }}>
-          <p>
-            <strong>{currentTrack.name}</strong>
-          </p>
-          <p>{currentTrack.artist}</p>
-          <p>
-            <em>{currentTrack.album}</em>
-          </p>
+        <div className="flex flex-col items-center gap-2">
+          <div>
+            <p>
+              <strong>{currentTrack.name}</strong>
+            </p>
+            <p>{currentTrack.artist}</p>
+            <p>
+              <em>{currentTrack.album}</em>
+            </p>
+          </div>
+          <div className="w-fit h-10 flex justify-center">
+            <UserInfo id={currentTrack.added_by_id}></UserInfo>
+          </div>
           {currentTrack.image && (
             <img
               src={currentTrack.image}

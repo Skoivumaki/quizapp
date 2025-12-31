@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useGetCurrentUserQuery, useGetUserPlaylistsQuery } from "@/spotifyApi";
 import PlaylistItem from "./PlaylistItem";
 import { Button } from "./Button";
+import LoginPrompt from "./LoginPrompt";
 
 export default function Playlist({
   onSelect,
@@ -61,7 +62,25 @@ export default function Playlist({
 
   return (
     <div className="w-full">
-      {playlistsLoading && offset === 0 && <p>Loading playlists…</p>}
+      {/* Show login prompt if refresh fails */}
+      {typeof userError === "object" &&
+        userError !== null &&
+        "status" in userError &&
+        (userError as any).status === 401 && <LoginPrompt />}
+      {playlistsLoading && offset === 0 && (
+        <>
+          <li className="bg-gray-900 p-2 my-2 rounded flex items-center justify-between max-w-full overflow-hidden animate-pulse">
+            <div className="flex items-center min-w-0 flex-1 overflow-hidden">
+              <div className="w-[50px] h-[50px] bg-gray-700 rounded mr-2 flex-shrink-0" />
+              <div className="flex flex-col gap-2 overflow-hidden w-full">
+                <div className="h-4 bg-gray-700 rounded w-1/4" />
+                <div className="h-3 bg-gray-700 rounded w-1/5" />
+              </div>
+            </div>
+            <div className="h-9 w-18 bg-gray-700 rounded-4xl ml-4" />
+          </li>
+        </>
+      )}
       {playlistsError && <p>Error loading playlists</p>}
 
       {allPlaylists.length > 0 ? (

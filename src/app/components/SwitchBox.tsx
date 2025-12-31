@@ -33,7 +33,7 @@ export function SwitchBox({
   };
 
   return (
-    <div className="relative inline-flex w-full bg-gray-900 rounded-full border-2 border-green-500 overflow-hidden isolate">
+    <div className="relative inline-flex w-full bg-gray-900 rounded-full border-2 border-pink-400 overflow-hidden isolate">
       {options.map((opt, index) => {
         const isActive = opt.value === currentValue;
         const isFirst = index === 0;
@@ -50,10 +50,14 @@ export function SwitchBox({
               !isFirst && "-ml-px",
               isActive ? "z-20" : "z-10",
 
-              theme === ButtonTheme.PRIMARY &&
+              theme === ButtonTheme.PRIMARY2 &&
                 (isActive
                   ? "bg-green-500 text-black"
                   : "bg-transparent text-green-400"),
+              theme === ButtonTheme.PRIMARY &&
+                (isActive
+                  ? "bg-pink-400 text-black"
+                  : "bg-transparent text-pink-400"),
 
               theme === ButtonTheme.INVERT &&
                 (isActive

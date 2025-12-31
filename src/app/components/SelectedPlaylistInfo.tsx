@@ -35,7 +35,9 @@ export default function SelectedPlaylistInfo({
       )}
 
       <div className="flex flex-col overflow-hidden min-w-0">
-        <h2 className="text-xl font-bold truncate">{playlistName}</h2>
+        <h2 className="text-xl font-bold truncate bg-gradient-to-t from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+          {playlistName}
+        </h2>
         <p className="text-sm text-gray-400 mb-2 truncate">by {owner}</p>
 
         {description && (
