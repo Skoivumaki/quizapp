@@ -1,9 +1,9 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import SearchPlaylist from "./app/components/SearchPlaylist";
+import { createApi } from "@reduxjs/toolkit/query/react";
+import { baseQueryWithReauth } from "./authApi";
 
 export const spotifyApi = createApi({
   reducerPath: "spotifyApi",
-  baseQuery: fetchBaseQuery({ baseUrl: "/quiz/api/spotify/" }),
+  baseQuery: baseQueryWithReauth,
   endpoints: (builder) => ({
     SearchPlaylists: builder.query<
       any,
@@ -16,6 +16,9 @@ export const spotifyApi = createApi({
     }),
     getCurrentUser: builder.query<any, void>({
       query: () => "me",
+    }),
+    getUserProfile: builder.query<any, string>({
+      query: (userId) => `users/${userId}`,
     }),
     getUserPlaylists: builder.query<
       any,
@@ -63,6 +66,7 @@ export const spotifyApi = createApi({
 export const {
   useSearchPlaylistsQuery,
   useGetCurrentUserQuery,
+  useGetUserProfileQuery,
   useGetUserPlaylistsQuery,
   useGetTrackQuery,
   useGetPlaylistQuery,
