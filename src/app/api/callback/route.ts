@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
   const data: SpotifyTokenResponse = await response.json();
   if ("error" in data) return NextResponse.redirect("/error");
 
-  const expiresAt = Date.now() + data.expires_in * 1000;
+  const expiresAt = Date.now() + data.expires_in * 900;
 
   const res = NextResponse.redirect(
     process.env.NEXT_PUBLIC_BASE_URL || "http://127.0.0.1:3000/quiz"
@@ -65,8 +65,8 @@ export async function GET(req: NextRequest) {
       maxAge: data.expires_in,
       path: "/",
     });
-	
-	  res.cookies.set("production", process.env.NEXT_PUBLIC_BASE_URL, {
+
+    res.cookies.set("production", process.env.NEXT_PUBLIC_BASE_URL, {
       httpOnly: true,
       secure: true,
       sameSite: "lax",

@@ -40,7 +40,7 @@ export async function GET() {
     const accessToken = data.access_token;
     const expiresIn = data.expires_in;
     const newRefreshToken = data.refresh_token ?? refreshToken;
-    const expiresAt = Date.now() + expiresIn * 1000;
+    const expiresAt = Date.now() + expiresIn * 900;
 
     const res = NextResponse.redirect(`${baseUrl}/`);
 
