@@ -4,6 +4,9 @@ import { useMemo } from "react";
 
 // move to types
 type SpotifyTrackItem = {
+  added_by: {
+    id: string;
+  };
   track: {
     id: string;
     name: string;
@@ -34,6 +37,7 @@ export function useFormattedTracks(
       image: item.track.album.images[0]?.url,
       uri: item.track.uri,
       duration_ms: item.track.duration_ms,
+      added_by_id: item.added_by.id,
     }));
 
     if (shuffle) {

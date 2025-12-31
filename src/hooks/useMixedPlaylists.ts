@@ -14,7 +14,6 @@ export function useMixedPlaylists(
   playlistId2: string | null,
   { shuffle = false, limit }: UseMixedPlaylistsOptions = {}
 ) {
-  // Always call hooks in same order
   const { data: data1, isLoading: loading1 } = useGetPlaylistQuery(
     playlistId1,
     {
@@ -29,7 +28,6 @@ export function useMixedPlaylists(
     }
   );
 
-  // ✅ Call useFormattedTracks hooks at top level
   const formattedTracks1 = useFormattedTracks(data1?.tracks.items, {
     shuffle,
     limit,
@@ -39,10 +37,8 @@ export function useMixedPlaylists(
     limit,
   });
 
-  // ✅ Now safe to use useMemo for combining
   const mixedTracks = useMemo(() => {
     if (!playlistId2 || !formattedTracks2.length) {
-      // Only one playlist active
       return formattedTracks1;
     }
 
