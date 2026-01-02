@@ -5,6 +5,7 @@ import { useGetCurrentUserQuery, useGetUserPlaylistsQuery } from "@/spotifyApi";
 import PlaylistItem from "./PlaylistItem";
 import { Button } from "./Button";
 import LoginPrompt from "./LoginPrompt";
+import { toast } from "react-toastify";
 
 export default function Playlist({
   onSelect,
@@ -26,6 +27,7 @@ export default function Playlist({
 
   const [offset, setOffset] = useState(0);
   const [allPlaylists, setAllPlaylists] = useState<any[]>([]);
+  const [renderPending, setRenderPending] = useState(true);
 
   const {
     data: playlistsData,
@@ -39,18 +41,28 @@ export default function Playlist({
 
   useEffect(() => {
     if (playlistsData?.items) {
+      setRenderPending(true);
+
       setAllPlaylists((prev) => {
         const existingIds = new Set(prev.map((p) => p.id));
         const newItems = playlistsData.items.filter(
           (p: any) => !existingIds.has(p.id)
         );
+
         return offset === 0 ? playlistsData.items : [...prev, ...newItems];
+      });
+
+      requestAnimationFrame(() => {
+        setRenderPending(false);
       });
     }
   }, [playlistsData, offset]);
 
-  if (userError) return <p>Error loading user</p>;
-  if (userLoading) return <p>Loading user…</p>;
+  if (userError) toast("Error loading playlists");
+  if (playlistsError) toast("Error loading playlists");
+
+  const showSkeleton =
+    userLoading || playlistsLoading || isFetching || renderPending;
 
   const handleLoadMore = () => {
     if (playlistsData?.next && !isFetching) {
@@ -67,18 +79,23 @@ export default function Playlist({
         userError !== null &&
         "status" in userError &&
         (userError as any).status === 401 && <LoginPrompt />}
-      {playlistsLoading && offset === 0 && (
+      {showSkeleton && offset === 0 && (
         <>
-          <li className="bg-gray-900 p-2 my-2 rounded flex items-center justify-between max-w-full overflow-hidden animate-pulse">
-            <div className="flex items-center min-w-0 flex-1 overflow-hidden">
-              <div className="w-[50px] h-[50px] bg-gray-700 rounded mr-2 flex-shrink-0" />
-              <div className="flex flex-col gap-2 overflow-hidden w-full">
-                <div className="h-4 bg-gray-700 rounded w-1/4" />
-                <div className="h-3 bg-gray-700 rounded w-1/5" />
+          {Array.from({ length: 5 }).map((_, i) => (
+            <li
+              key={i}
+              className="bg-gray-900 p-2 my-2 rounded flex items-center justify-between animate-pulse"
+            >
+              <div className="flex items-center flex-1">
+                <div className="w-[50px] h-[50px] bg-gray-700 rounded mr-2" />
+                <div className="flex flex-col gap-2 w-full">
+                  <div className="h-4 bg-gray-700 rounded w-1/4" />
+                  <div className="h-3 bg-gray-700 rounded w-1/5" />
+                </div>
               </div>
-            </div>
-            <div className="h-9 w-18 bg-gray-700 rounded-4xl ml-4" />
-          </li>
+              <div className="h-9 w-18 bg-gray-700 rounded-4xl" />
+            </li>
+          ))}
         </>
       )}
       {playlistsError && <p>Error loading playlists</p>}
@@ -97,7 +114,7 @@ export default function Playlist({
                     pl.owner?.display_name,
                     pl.description,
                     pl.tracks.total,
-                    pl.images.length > 0 ? pl.images[0].url : null
+                    pl.images?.length > 0 ? pl.images[0].url : null
                   );
                 }}
                 isLoading={userLoading || playlistsLoading}
@@ -112,7 +129,7 @@ export default function Playlist({
               </Button>
             ) : (
               !isFetching && (
-                <p className="text-green-400 mt-2">No more playlists found.</p>
+                <p className="text-purple-400 mt-2">No more playlists found.</p>
               )
             )}
           </div>
