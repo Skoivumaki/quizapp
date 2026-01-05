@@ -1,10 +1,9 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { usePlayTrackMutation } from "@/spotifyApi";
-import { Button, ButtonSize, ButtonTheme } from "./Button";
-import Link from "next/link";
 import UserInfo from "./UserInfo";
 import { toast } from "react-toastify";
+import { Button } from "./Button";
 
 interface FormattedTrack {
   id: string;
@@ -25,18 +24,20 @@ interface GuessingGameProps {
   seek?: number;
   random?: boolean;
   deviceId?: string | null;
+  gamemode?: string | null;
 }
 
 export default function GuessingGame({
   tracks,
   playlistName,
-  accessToken,
   onStatusChange,
   seek = 0,
   random = false,
   deviceId = null,
+  gamemode = null,
 }: GuessingGameProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [startPosition, setStartPosition] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
@@ -67,8 +68,6 @@ export default function GuessingGame({
     }, SHOW_ANSWER_COOLDOWN);
   };
 
-  console.log("GuessingGame deviceId:", deviceId);
-
   useEffect(() => {
     if (!onStatusChange || isFinished) return;
     if (!hasStarted) onStatusChange("idle");
@@ -76,11 +75,36 @@ export default function GuessingGame({
     else onStatusChange("playing");
   }, [hasStarted, showAnswer, currentIndex, isFinished, onStatusChange]);
 
+  const handleStartAgain = async () => {
+    if (!currentTrack) return;
+
+    try {
+      await playTrack({
+        id: currentTrack.id,
+        position_ms: startPosition,
+        device_id: deviceId ?? undefined,
+      }).unwrap();
+      setHasStarted(true);
+      setShowAnswer(false);
+      setIsFinished(false);
+      onStatusChange?.("playing");
+      console.log("Playback started", deviceId);
+    } catch (err) {
+      console.error("Playback failed", err);
+      toast.error(
+        `Playback failed: ${err instanceof Error ? err.message : String(err)}`
+      );
+    }
+  };
+
   const handlePlay = async () => {
     if (!currentTrack) return;
+
     const position_ms = random
       ? getRandomSeek(currentTrack.duration_ms || 30000)
       : seek;
+
+    setStartPosition(position_ms);
 
     try {
       await playTrack({
@@ -95,6 +119,9 @@ export default function GuessingGame({
       console.log("Playback started", deviceId);
     } catch (err) {
       console.error("Playback failed", err);
+      toast.error(
+        `Playback failed: ${err instanceof Error ? err.message : String(err)}`
+      );
     }
   };
 
@@ -126,6 +153,8 @@ export default function GuessingGame({
       ? getRandomSeek(nextTrack.duration_ms || 30_000)
       : seek;
 
+    setStartPosition(position_ms);
+
     try {
       await playTrack({
         id: nextTrack.id,
@@ -139,66 +168,105 @@ export default function GuessingGame({
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: "1rem",
-        padding: "1rem",
-        borderRadius: "8px",
-        color: "#fff",
-        alignSelf: "center",
-        minWidth: "340px",
-        width: "90%",
-      }}
-      className="bg-gray-800"
-    >
-      <h2>{playlistName || "Playlist"}</h2>
-      <h3>{isFinished ? "Quiz Complete!" : "Guess the Track!"}</h3>
+    <>
+      {gamemode == "classic" ? (
+        <h2 className="text-xl font-bold bg-gradient-to-t from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+          {playlistName || "Playlist"}
+        </h2>
+      ) : (
+        <h2 className="text-xl font-bold bg-gradient-to-t from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+          Duo Mode
+        </h2>
+      )}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "1rem",
+          padding: "1rem",
+          borderRadius: "8px",
+          color: "#fff",
+          alignSelf: "center",
+          minWidth: "340px",
+          width: "90%",
+        }}
+        className="bg-gray-800"
+      >
+        <h3>{isFinished && "Quiz Complete!"}</h3>
 
-      {hasStarted && (
-        <div
-          style={{
-            width: "100%",
-            borderRadius: "6px",
-            height: "8px",
-            overflow: "hidden",
-          }}
-          className="bg-gray-700"
-        >
+        {hasStarted && (
           <div
             style={{
-              width: `${progressPercent}%`,
-              height: "100%",
-              transition: "width 0.4s ease",
+              width: "100%",
+              borderRadius: "6px",
+              height: "8px",
+              overflow: "hidden",
             }}
-            className="bg-gradient-to-l from-indigo-400 via-purple-400 to-pink-400"
-          ></div>
-        </div>
-      )}
+            className="bg-gray-700"
+          >
+            <div
+              style={{
+                width: `${progressPercent}%`,
+                height: "100%",
+                transition: "width 0.4s ease",
+              }}
+              className="bg-gradient-to-l from-indigo-400 via-purple-400 to-pink-400"
+            ></div>
+          </div>
+        )}
 
-      {!hasStarted && !isFinished ? (
-        <button
-          onClick={handlePlay}
-          disabled={isLoading}
-          className="bg-pink-400"
-          style={{
-            color: "#000",
-            border: "none",
-            padding: "0.5rem 1rem",
-            borderRadius: "6px",
-            cursor: "pointer",
-            fontWeight: 600,
-          }}
-        >
-          {isLoading ? "Loading…" : "Play First Track"}
-        </button>
-      ) : hasStarted && !showAnswer ? (
-        <button
-          onClick={handleShowAnswer}
-          disabled={isShowAnswerDisabled}
-          className={`
+        {showAnswer && currentTrack && (
+          <div className="flex flex-col items-center gap-2">
+            <div>
+              <p>
+                <strong>{currentTrack.name}</strong>
+              </p>
+              <p>{currentTrack.artist}</p>
+              <p>
+                <em>{currentTrack.album}</em>
+              </p>
+            </div>
+            {gamemode == "duo" && (
+              <div className="w-fit h-10 flex justify-center">
+                <UserInfo id={currentTrack.added_by_id}></UserInfo>
+              </div>
+            )}
+            {currentTrack.image && (
+              <img
+                src={currentTrack.image}
+                alt={currentTrack.name}
+                style={{
+                  width: "100%",
+                  borderRadius: "8px",
+                  marginBottom: "0.5rem",
+                }}
+              />
+            )}
+          </div>
+        )}
+
+        {!hasStarted && !isFinished ? (
+          <button
+            onClick={handlePlay}
+            disabled={isLoading}
+            className="bg-pink-400"
+            style={{
+              color: "#000",
+              border: "none",
+              padding: "0.5rem 1rem",
+              borderRadius: "6px",
+              cursor: "pointer",
+              fontWeight: 600,
+            }}
+          >
+            {isLoading ? "Loading…" : "Play First Track"}
+          </button>
+        ) : hasStarted && !showAnswer ? (
+          <button
+            onClick={handleShowAnswer}
+            disabled={isShowAnswerDisabled}
+            className={`
     border border-neutral-600 rounded-md px-4 py-2 font-semibold
     transition-all duration-300 flex flex-row items-center justify-center
     ${
@@ -207,82 +275,64 @@ export default function GuessingGame({
         : "bg-neutral-800 hover:bg-neutral-700 text-white cursor-pointer"
     }
   `}
+          >
+            {isShowAnswerDisabled && (
+              <svg
+                class="mr-3 -ml-1 size-5 animate-spin text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                ></circle>
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+            )}
+
+            {isShowAnswerDisabled ? "Show Answer" : "Show Answer"}
+          </button>
+        ) : isFinished ? null : (
+          <button
+            onClick={handleNextTrack}
+            className="bg-pink-400"
+            style={{
+              color: "#000",
+              border: "none",
+              padding: "0.5rem 1rem",
+              borderRadius: "6px",
+              cursor: "pointer",
+              fontWeight: 600,
+            }}
+          >
+            {currentIndex >= totalTracks - 1 ? "Finish Quiz" : "Next Song"}
+          </button>
+        )}
+
+        {hasStarted && !isFinished && (
+          <p style={{ fontSize: "0.9rem", color: "#aaa" }}>
+            Track {currentIndex + 1} / {totalTracks}
+          </p>
+        )}
+      </div>
+      <div className="flex justify-center fixed bottom-10 w-full">
+        <Button
+          onClick={handleStartAgain}
+          disabled={isLoading}
+          className="bg-pink-400 rounded-full w-20 h-20"
         >
-          {isShowAnswerDisabled && (
-            <svg
-              class="mr-3 -ml-1 size-5 animate-spin text-white"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                class="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                stroke-width="4"
-              ></circle>
-              <path
-                class="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              ></path>
-            </svg>
-          )}
-
-          {isShowAnswerDisabled ? "Show Answer" : "Show Answer"}
-        </button>
-      ) : isFinished ? null : (
-        <button
-          onClick={handleNextTrack}
-          className="bg-pink-400"
-          style={{
-            color: "#000",
-            border: "none",
-            padding: "0.5rem 1rem",
-            borderRadius: "6px",
-            cursor: "pointer",
-            fontWeight: 600,
-          }}
-        >
-          {currentIndex >= totalTracks - 1 ? "Finish Quiz" : "Next Song"}
-        </button>
-      )}
-
-      {showAnswer && currentTrack && (
-        <div className="flex flex-col items-center gap-2">
-          <div>
-            <p>
-              <strong>{currentTrack.name}</strong>
-            </p>
-            <p>{currentTrack.artist}</p>
-            <p>
-              <em>{currentTrack.album}</em>
-            </p>
-          </div>
-          <div className="w-fit h-10 flex justify-center">
-            <UserInfo id={currentTrack.added_by_id}></UserInfo>
-          </div>
-          {currentTrack.image && (
-            <img
-              src={currentTrack.image}
-              alt={currentTrack.name}
-              style={{
-                width: "100%",
-                borderRadius: "8px",
-                marginBottom: "0.5rem",
-              }}
-            />
-          )}
-        </div>
-      )}
-
-      {hasStarted && !isFinished && (
-        <p style={{ fontSize: "0.9rem", color: "#aaa" }}>
-          Track {currentIndex + 1} / {totalTracks}
-        </p>
-      )}
-    </div>
+          {isLoading ? "Loading…" : "Play again"}
+        </Button>
+      </div>
+    </>
   );
 }
