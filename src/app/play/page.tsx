@@ -11,6 +11,7 @@ import { Container } from "../components/Container";
 import { Button, ButtonSize, ButtonTheme } from "../components/Button";
 import { SwitchBox } from "../components/SwitchBox";
 import { toast } from "react-toastify";
+import GamemodeSelector from "../components/GamemodeSelector";
 
 export default function PlayerPage() {
   const [playlistSource, setPlaylistSource] = useState<
@@ -89,7 +90,7 @@ export default function PlayerPage() {
   }
 
   const playHref = selectedPlaylistId
-    ? `/play/${selectedPlaylistId}?limit=${limit}&seek=${seek}&random=${random}&internalPlayer=${internalPlayer}` +
+    ? `/play/${selectedPlaylistId}?limit=${limit}&seek=${seek}&random=${random}&internalPlayer=${internalPlayer}&gm=${gamemode}` +
       (selectedPlaylistId2 ? `&playlist2=${selectedPlaylistId2}` : "")
     : "#";
 
@@ -123,6 +124,8 @@ export default function PlayerPage() {
           </div>
         </div>
       </Container>
+
+      <GamemodeSelector value={gamemode} onChange={setGamemode} />
 
       {gamemode === "duo" && (
         <Container
