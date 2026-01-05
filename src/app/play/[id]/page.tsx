@@ -32,13 +32,13 @@ export default function PlayPage() {
   const searchParams = useSearchParams();
   const limitParam = Number(searchParams.get("limit")) || 20;
   const seekParam = Number(searchParams.get("seek")) || 0;
+  const gamemodeParam = Number(searchParams.get("gm")) || "classic";
   const selectedPlaylistId2 = searchParams.get("playlist2");
   const isRandom = searchParams.get("random") === "true";
   const internalPlayer = searchParams.get("internalPlayer") === "true";
 
-  // --- always call hooks in a consistent order
   const singlePlaylistQuery = useGetPlaylistQuery(id as string, {
-    skip: !!selectedPlaylistId2, // skip if we’ll be using mixed
+    skip: !!selectedPlaylistId2,
   });
 
   const mixedPlaylistQuery = useMixedPlaylists(
@@ -47,7 +47,6 @@ export default function PlayPage() {
     { shuffle: true, limit: limitParam }
   );
 
-  // --- pick which data to use based on id2
   const isUsingMixed = !!selectedPlaylistId2;
   const isLoading = isUsingMixed
     ? mixedPlaylistQuery.isLoading
@@ -60,11 +59,8 @@ export default function PlayPage() {
         limit: limitParam,
       });
 
-  const data = isUsingMixed
-    ? { name: "Mixed Playlist" } // or combine both names later
-    : singlePlaylistQuery.data;
+  const data = isUsingMixed ? { name: "Duo Mode" } : singlePlaylistQuery.data;
 
-  // --- Spotify SDK setup
   const [spotifyDeviceId, setSpotifyDeviceId] = useState<string | null>(null);
   const [spotifyPlayer, setSpotifyPlayer] = useState<SpotifyPlayer | null>(
     null
@@ -120,19 +116,31 @@ export default function PlayPage() {
     };
   }, [accessToken, internalPlayer, spotifyPlayer]);
 
-  // --- game logic
   const [gameStatus, setGameStatus] = useState("loading");
   const [canScore, setCanScore] = useState(false);
   const [showScoreboard, setShowScoreboard] = useState(true);
   const [showDebugInfo, setShowDebugInfo] = useState(false);
+  // Move control into settings
+  const [autoShowScoreboard, setAutoShowScoreboard] = useState(true);
 
   useEffect(() => {
     setCanScore(gameStatus === "answer_shown");
   }, [gameStatus]);
 
   const handleConsumeScore = () => setCanScore(false);
-  const isScoreboardVisible =
+
+  const isScoreboardAllowed =
     gameStatus === "answer_shown" || gameStatus === "finished";
+
+  const scoreboardVisible = isScoreboardAllowed && showScoreboard;
+
+  useEffect(() => {
+    if (!autoShowScoreboard) return;
+
+    if (isScoreboardAllowed) {
+      setShowScoreboard(true);
+    }
+  }, [isScoreboardAllowed, autoShowScoreboard]);
 
   const handleStartPlayback = async () => {
     if (!spotifyPlayer) {
@@ -174,9 +182,9 @@ export default function PlayPage() {
   return (
     <>
       <div
+        className="py-2 gap-2"
         style={{
           color: "white",
-          padding: "1rem",
           textAlign: "center",
           display: "flex",
           flexDirection: "column",
@@ -226,11 +234,12 @@ export default function PlayPage() {
             seek={seekParam}
             random={isRandom}
             deviceId={spotifyDeviceId}
+            gamemode={gamemodeParam}
           />
         )}
       </div>
 
-      {!isScoreboardVisible && (
+      {!scoreboardVisible && (
         <button
           onClick={() => setShowScoreboard((prev) => !prev)}
           title={showScoreboard ? "Hide Scoreboard" : "Show Scoreboard"}
@@ -242,7 +251,7 @@ export default function PlayPage() {
 
       <div
         className={`flex flex-col items-center gap-4 transition-all duration-300 ease-in-out w-full fixed bottom-0 mb-2 overflow-hidden ${
-          isScoreboardVisible || showScoreboard
+          scoreboardVisible || showScoreboard
             ? "translate-y-0 opacity-100"
             : "translate-y-full opacity-100"
         }`}
@@ -250,7 +259,7 @@ export default function PlayPage() {
         <Scoreboard
           canScore={canScore}
           onConsumeScore={handleConsumeScore}
-          isVisible={isScoreboardVisible}
+          isVisible={scoreboardVisible}
           onToggleVisibility={() => setShowScoreboard((v) => !v)}
         />
       </div>
