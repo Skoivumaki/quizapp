@@ -19,7 +19,7 @@ export default function SelectedPlaylistInfo({
   imageUrl,
 }: SelectedPlaylistInfoProps) {
   return (
-    <div className="bg-gray-800 rounded p-4 flex items-start gap-4 text-white max-w-full overflow-hidden">
+    <div className="bg-gray-800 rounded pl-4 py-4 flex items-start gap-4 text-white max-w-full overflow-hidden">
       {imageUrl ? (
         <Image
           src={imageUrl}
@@ -35,8 +35,10 @@ export default function SelectedPlaylistInfo({
       )}
 
       <div className="flex flex-col overflow-hidden min-w-0">
-        <h2 className="text-xl font-bold truncate bg-gradient-to-t from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-          {playlistName}
+        <h2 className="flex-1">
+          <span className="bg-gradient-to-t from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+            {playlistName}
+          </span>
         </h2>
         <p className="text-sm text-gray-400 mb-2 truncate">by {owner}</p>
 
@@ -48,7 +50,7 @@ export default function SelectedPlaylistInfo({
 
         <span className="text-gray-400 text-sm">
           Total tracks:{" "}
-          <span className="font-semibold text-gray-200">{totalTracks}</span>
+          <span className="font-semibold text-purple-400">{totalTracks}</span>
         </span>
         <span className="text-xs text-gray-500 mt-2">
           Playlist ID: {playlistId}
