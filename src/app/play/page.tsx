@@ -10,8 +10,8 @@ import GameSettings from "../components/GameSettings";
 import { Container } from "../components/Container";
 import { Button, ButtonSize, ButtonTheme } from "../components/Button";
 import { SwitchBox } from "../components/SwitchBox";
-import { toast } from "react-toastify";
 import GamemodeSelector from "../components/GamemodeSelector";
+import NavBar from "../components/NavBar";
 
 export default function PlayerPage() {
   const [playlistSource, setPlaylistSource] = useState<
@@ -94,40 +94,51 @@ export default function PlayerPage() {
       (selectedPlaylistId2 ? `&playlist2=${selectedPlaylistId2}` : "")
     : "#";
 
-  const notify = () => toast("Wow so easy!");
   return (
-    <div className="w-screen p-4 flex flex-col items-center gap-4">
-      <h1 className="text-center font-bold text-2xl">Quiz Setup</h1>
+    <>
+      <NavBar variant="play" />
+      <div className="w-screen p-4 mt-8 flex flex-col items-center gap-4">
+        <GamemodeSelector value={gamemode} onChange={setGamemode} />
 
-      <Container
-        direction="row"
-        justify="between"
-        align="center"
-        gap="4"
-        className="w-full p-4 rounded"
-      >
-        <div>
-          <div className="flex flex-row justify-between items-center">
-            GAMEMODE SELECTION
-            <button onClick={notify}>Toast test</button>
-          </div>
-          <div>
-            <SwitchBox
-              theme={ButtonTheme.PRIMARY}
-              options={[
-                { label: "Classic", value: "classic" },
-                { label: "Duo", value: "duo" },
-              ]}
-              onChange={(val) => setGamemode(val as "classic" | "duo")}
-              currentValue={gamemode}
-            />
-          </div>
-        </div>
-      </Container>
+        {gamemode === "duo" && (
+          <Container
+            direction="col"
+            justify="between"
+            align="center"
+            gap="4"
+            className="w-full p-4 rounded"
+          >
+            <>
+              <SwitchBox
+                theme={ButtonTheme.PRIMARY}
+                options={[
+                  { label: "My Playlists", value: "myPlaylist2" },
+                  { label: "Search Playlists", value: "searchPlaylist2" },
+                ]}
+                onChange={(val) =>
+                  setPlaylistSource2(val as "myPlaylist2" | "searchPlaylist2")
+                }
+                currentValue={playlistSource2}
+              />
+              {playlistSource2 === "myPlaylist2" ? (
+                <Playlists onSelect={handlePlaylistSelect2} />
+              ) : (
+                <SearchPlaylist onSelect={handlePlaylistSelect2} />
+              )}
+              {manualMode ? (
+                <ManualPlaylist onSelect={handlePlaylistSelect2} />
+              ) : (
+                <button onClick={() => setManualMode2(true)}>
+                  <small className="underline">
+                    {"Can't find what you are looking for? Try manual entry."}
+                  </small>
+                </button>
+              )}
+            </>
+          </Container>
+        )}
 
-      <GamemodeSelector value={gamemode} onChange={setGamemode} />
-
-      {gamemode === "duo" && (
+        {/* FIRST PLAYER PLAYLIST SELECTION */}
         <Container
           direction="col"
           justify="between"
@@ -139,23 +150,23 @@ export default function PlayerPage() {
             <SwitchBox
               theme={ButtonTheme.PRIMARY}
               options={[
-                { label: "My Playlists", value: "myPlaylist2" },
-                { label: "Search Playlists", value: "searchPlaylist2" },
+                { label: "My Playlists", value: "myPlaylist" },
+                { label: "Search Playlists", value: "searchPlaylist" },
               ]}
               onChange={(val) =>
-                setPlaylistSource2(val as "myPlaylist2" | "searchPlaylist2")
+                setPlaylistSource(val as "myPlaylist" | "searchPlaylist")
               }
-              currentValue={playlistSource2}
+              currentValue={playlistSource}
             />
-            {playlistSource2 === "myPlaylist2" ? (
-              <Playlists onSelect={handlePlaylistSelect2} />
+            {playlistSource === "myPlaylist" ? (
+              <Playlists onSelect={handlePlaylistSelect} />
             ) : (
-              <SearchPlaylist onSelect={handlePlaylistSelect2} />
+              <SearchPlaylist onSelect={handlePlaylistSelect} />
             )}
             {manualMode ? (
-              <ManualPlaylist onSelect={handlePlaylistSelect2} />
+              <ManualPlaylist onSelect={handlePlaylistSelect} />
             ) : (
-              <button onClick={() => setManualMode2(true)}>
+              <button onClick={() => setManualMode(true)}>
                 <small className="underline">
                   {"Can't find what you are looking for? Try manual entry."}
                 </small>
@@ -163,116 +174,79 @@ export default function PlayerPage() {
             )}
           </>
         </Container>
-      )}
 
-      {/* FIRST PLAYER PLAYLIST SELECTION */}
-      <Container
-        direction="col"
-        justify="between"
-        align="center"
-        gap="4"
-        className="w-full p-4 rounded"
-      >
-        <>
-          <SwitchBox
-            theme={ButtonTheme.PRIMARY}
-            options={[
-              { label: "My Playlists", value: "myPlaylist" },
-              { label: "Search Playlists", value: "searchPlaylist" },
-            ]}
-            onChange={(val) =>
-              setPlaylistSource(val as "myPlaylist" | "searchPlaylist")
-            }
-            currentValue={playlistSource}
-          />
-          {playlistSource === "myPlaylist" ? (
-            <Playlists onSelect={handlePlaylistSelect} />
-          ) : (
-            <SearchPlaylist onSelect={handlePlaylistSelect} />
-          )}
-          {manualMode ? (
-            <ManualPlaylist onSelect={handlePlaylistSelect} />
-          ) : (
-            <button onClick={() => setManualMode(true)}>
-              <small className="underline">
-                {"Can't find what you are looking for? Try manual entry."}
-              </small>
-            </button>
-          )}
-        </>
-      </Container>
+        {selectedPlaylistId2 && (
+          <>
+            <h1 className="text-center font-bold text-2xl">
+              Blending {selectedPlaylistName2}
+            </h1>
+            <Container
+              direction="col"
+              justify="between"
+              align="center"
+              gap="4"
+              className="w-full p-4 rounded"
+            >
+              <SelectedPlaylistInfo
+                playlistId={selectedPlaylistId2}
+                playlistName={selectedPlaylistName2}
+                owner={selectedPlaylistOwner2}
+                description={selectedPlaylistDescription2}
+                totalTracks={selectedPlaylistTotalTracks2}
+                imageUrl={selectedPlaylistImageUrl2}
+              />
+            </Container>
+          </>
+        )}
 
-      {selectedPlaylistId2 && (
-        <>
-          <h1 className="text-center font-bold text-2xl">
-            Blending {selectedPlaylistName2}
-          </h1>
-          <Container
-            direction="col"
-            justify="between"
-            align="center"
-            gap="4"
-            className="w-full p-4 rounded"
-          >
-            <SelectedPlaylistInfo
-              playlistId={selectedPlaylistId2}
-              playlistName={selectedPlaylistName2}
-              owner={selectedPlaylistOwner2}
-              description={selectedPlaylistDescription2}
-              totalTracks={selectedPlaylistTotalTracks2}
-              imageUrl={selectedPlaylistImageUrl2}
-            />
-          </Container>
-        </>
-      )}
-
-      {selectedPlaylistId ? (
-        <>
-          <h1 className="text-center font-bold text-2xl">Game Settings</h1>
-          <Container
-            direction="col"
-            justify="between"
-            align="center"
-            gap="4"
-            className="w-full p-4 rounded"
-          >
-            <GameSettings
-              limit={limit}
-              setLimit={setLimit}
-              seek={seek}
-              setSeek={setSeek}
-              setLength={setLength}
-              length={length}
-              random={random}
-              setRandom={setRandom}
-              internalPlayer={internalPlayer}
-              setInternalPlayer={setInternalPlayer}
-            />
-          </Container>
-          <h1 className="text-center font-bold text-2xl">Overview</h1>
-          <Container
-            direction="col"
-            justify="between"
-            align="center"
-            gap="4"
-            className="w-full p-4 rounded"
-          >
-            <SelectedPlaylistInfo
-              playlistId={selectedPlaylistId}
-              playlistName={selectedPlaylistName}
-              owner={selectedPlaylistOwner}
-              description={selectedPlaylistDescription}
-              totalTracks={selectedPlaylistTotalTracks}
-              imageUrl={selectedPlaylistImageUrl}
-            />
-            <Button theme={ButtonTheme.PRIMARY} size={ButtonSize.XL}>
-              <Link href={playHref}>Start Game</Link>
-            </Button>
-          </Container>
-        </>
-      ) : (
-        <p className="text-green-400">No Playlist Selected</p>
-      )}
-    </div>
+        {selectedPlaylistId ? (
+          <>
+            <h1 className="text-center font-bold text-2xl">Game Settings</h1>
+            <Container
+              direction="col"
+              justify="between"
+              align="center"
+              gap="4"
+              className="w-full p-4 rounded"
+            >
+              <GameSettings
+                limit={limit}
+                setLimit={setLimit}
+                seek={seek}
+                setSeek={setSeek}
+                setLength={setLength}
+                length={length}
+                random={random}
+                setRandom={setRandom}
+                internalPlayer={internalPlayer}
+                setInternalPlayer={setInternalPlayer}
+              />
+            </Container>
+            <h1 className="text-center font-bold text-2xl">Overview</h1>
+            <Container
+              direction="col"
+              justify="between"
+              align="center"
+              gap="4"
+              className="w-full p-4 rounded"
+            >
+              <SelectedPlaylistInfo
+                playlistId={selectedPlaylistId}
+                playlistName={selectedPlaylistName}
+                owner={selectedPlaylistOwner}
+                description={selectedPlaylistDescription}
+                totalTracks={selectedPlaylistTotalTracks}
+                imageUrl={selectedPlaylistImageUrl}
+              />
+              <Button theme={ButtonTheme.PRIMARY} size={ButtonSize.XL}>
+                <Link href={playHref}>Start Game</Link>
+              </Button>
+            </Container>
+          </>
+        ) : (
+          <p className="text-green-400">No Playlist Selected</p>
+        )}
+      </div>
+    </>
   );
 }
