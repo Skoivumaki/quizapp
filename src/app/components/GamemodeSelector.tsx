@@ -55,8 +55,8 @@ export default function GamemodeSelector({
       </h2>
 
       <div className="relative">
-        <div className="pointer-events-none absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-black/60 to-transparent z-20" />
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-black/60 to-transparent z-20" />
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-black/60 to-transparent z-5" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-black/60 to-transparent z-5" />
 
         <div
           ref={containerRef}
@@ -81,8 +81,8 @@ export default function GamemodeSelector({
                     "relative w-full rounded-xl p-6 transition-all duration-300",
                     "bg-gray-800 text-white",
                     isActive
-                      ? "scale-100 z-20 shadow-xl border border-purple-400"
-                      : "scale-90 opacity-60 z-10"
+                      ? "scale-100 z-5 shadow-xl border border-purple-400"
+                      : "scale-90 opacity-60 z-3"
                   )}
                 >
                   <h3 className="text-xl font-bold mb-2">{mode.title}</h3>
