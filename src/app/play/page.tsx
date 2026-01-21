@@ -23,7 +23,7 @@ export default function PlayerPage() {
   const [gamemode, setGamemode] = useState<"classic" | "duo">("classic");
   const [manualMode2, setManualMode2] = useState<boolean>(false);
   const [selectedPlaylistId2, setSelectedPlaylistId2] = useState<string | null>(
-    null
+    null,
   );
   const [selectedPlaylistName2, setSelectedPlaylistName2] =
     useState<string>("");
@@ -39,7 +39,7 @@ export default function PlayerPage() {
 
   const [manualMode, setManualMode] = useState<boolean>(false);
   const [selectedPlaylistId, setSelectedPlaylistId] = useState<string | null>(
-    null
+    null,
   );
   const [selectedPlaylistName, setSelectedPlaylistName] = useState<string>("");
   const [selectedPlaylistOwner, setSelectedPlaylistOwner] =
@@ -64,7 +64,7 @@ export default function PlayerPage() {
     owner: string,
     description: string,
     totalTracks: number,
-    imageUrl: string | null
+    imageUrl: string | null,
   ) {
     setSelectedPlaylistId(playlistId);
     setSelectedPlaylistName(playlistName);
@@ -79,7 +79,7 @@ export default function PlayerPage() {
     owner2: string,
     description2: string,
     totalTracks2: number,
-    imageUrl2: string | null
+    imageUrl2: string | null,
   ) {
     setSelectedPlaylistId2(playlistId2);
     setSelectedPlaylistName2(playlistName2);
@@ -244,7 +244,7 @@ export default function PlayerPage() {
             </Container>
           </>
         ) : (
-          <p className="text-green-400">No Playlist Selected</p>
+          <p className="text-purple-400">No Playlist Selected</p>
         )}
       </div>
     </>
