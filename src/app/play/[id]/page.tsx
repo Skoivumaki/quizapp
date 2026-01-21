@@ -10,6 +10,8 @@ import { useMixedPlaylists } from "@/hooks/useMixedPlaylists";
 import GuessingGame from "@/app/components/GuessingGame";
 import Scoreboard from "@/app/components/Scoreboard";
 import { Button, ButtonSize, ButtonTheme } from "@/app/components/Button";
+import NavBar from "@/app/components/NavBar";
+import Image from "next/image";
 
 declare global {
   interface Window {
@@ -44,7 +46,7 @@ export default function PlayPage() {
   const mixedPlaylistQuery = useMixedPlaylists(
     id as string,
     selectedPlaylistId2,
-    { shuffle: true, limit: limitParam }
+    { shuffle: true, limit: limitParam },
   );
 
   const isUsingMixed = !!selectedPlaylistId2;
@@ -63,7 +65,7 @@ export default function PlayPage() {
 
   const [spotifyDeviceId, setSpotifyDeviceId] = useState<string | null>(null);
   const [spotifyPlayer, setSpotifyPlayer] = useState<SpotifyPlayer | null>(
-    null
+    null,
   );
 
   useEffect(() => {
@@ -118,6 +120,7 @@ export default function PlayPage() {
 
   const [gameStatus, setGameStatus] = useState("loading");
   const [canScore, setCanScore] = useState(false);
+  const [trackImage, setTrackImage] = useState<string | null>(null);
   const [showScoreboard, setShowScoreboard] = useState(true);
   const [showDebugInfo, setShowDebugInfo] = useState(false);
   // Move control into settings
@@ -154,12 +157,16 @@ export default function PlayPage() {
       if (ok) console.log("Spotify player connecting…");
       else
         toast.error(
-          "Spotify failed to initialize. Check account or permissions."
+          "Spotify failed to initialize. Check account or permissions.",
         );
     } catch (err: any) {
       console.error("connect() error:", err);
       toast.error(`Connect error: ${err.message || err}`);
     }
+  };
+
+  const handleShowAnswer = (image: string | null) => {
+    setTrackImage(image);
   };
 
   if (isLoading) return;
@@ -181,23 +188,40 @@ export default function PlayPage() {
 
   return (
     <>
+      <NavBar variant="game" />
       <div
-        className="py-2 gap-2"
+        className="pt-10"
         style={{
+          position: "relative",
+          height: "80vh",
+          maxHeight: "80vh",
+          overflow: "clip",
+          backgroundImage: `url(${trackImage})`,
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          backgroundSize: "cover",
+          filter: "blur(8px)",
+        }}
+      ></div>
+      <div
+        className="py-2 gap-2 mt-12"
+        style={{
+          position: "absolute",
           color: "white",
           textAlign: "center",
           display: "flex",
           flexDirection: "column",
-          height: "100vh",
-          maxHeight: "100vh",
+          height: "90vh",
+          maxHeight: "90vh",
           overflow: "clip",
+          width: "100%",
+          top: 0,
         }}
       >
-        <button onClick={() => setShowDebugInfo((prev) => !prev)}>
+        {/* <button onClick={() => setShowDebugInfo((prev) => !prev)}>
           Toggle Debug Info
-        </button>
-
-        {showDebugInfo && (
+        </button> */}
+        {/* {showDebugInfo && (
           <>
             {internalPlayer && (
               <div className="mb-2 text-green-400">
@@ -215,7 +239,7 @@ export default function PlayPage() {
               {showScoreboard && <span> | Scoreboard: Shown </span>}
             </p>
           </>
-        )}
+        )} */}
 
         {spotifyPlayer && !spotifyDeviceId ? (
           <Button
@@ -235,6 +259,7 @@ export default function PlayPage() {
             random={isRandom}
             deviceId={spotifyDeviceId}
             gamemode={gamemodeParam}
+            onShowAnswer={handleShowAnswer}
           />
         )}
       </div>
