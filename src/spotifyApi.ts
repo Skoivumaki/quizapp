@@ -11,7 +11,7 @@ export const spotifyApi = createApi({
     >({
       query: ({ query, limit = 20, offset = 0 }) =>
         `search?q=${encodeURIComponent(
-          query
+          query,
         )}&type=playlist&limit=${limit}&offset=${offset}`,
     }),
     getCurrentUser: builder.query<any, void>({
@@ -60,6 +60,21 @@ export const spotifyApi = createApi({
         },
       }),
     }),
+    pausePlayback: builder.mutation<void, { device_id?: string }>({
+      query: ({ device_id }) => ({
+        url: "me/player/pause",
+        method: "PUT",
+        params: device_id ? { device_id } : undefined,
+      }),
+    }),
+
+    resumePlayback: builder.mutation<void, { device_id?: string }>({
+      query: ({ device_id }) => ({
+        url: "me/player/play",
+        method: "PUT",
+        params: device_id ? { device_id } : undefined,
+      }),
+    }),
   }),
 });
 
@@ -72,4 +87,6 @@ export const {
   useGetPlaylistQuery,
   usePlayPlaylistMutation,
   usePlayTrackMutation,
+  usePausePlaybackMutation,
+  useResumePlaybackMutation,
 } = spotifyApi;

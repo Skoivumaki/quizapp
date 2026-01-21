@@ -1,9 +1,18 @@
 "use client";
-import { useState, useEffect, use } from "react";
-import { usePlayTrackMutation } from "@/spotifyApi";
+import { useState, useEffect } from "react";
+import {
+  usePausePlaybackMutation,
+  usePlayTrackMutation,
+  useResumePlaybackMutation,
+} from "@/spotifyApi";
 import UserInfo from "./UserInfo";
 import { toast } from "react-toastify";
 import { Button } from "./Button";
+import clsx from "clsx";
+import Image from "next/image";
+import play from "@/shared/assets/icons/play.svg";
+import pause from "@/shared/assets/icons/pause.svg";
+import playagain from "@/shared/assets/icons/playagain.svg";
 
 interface FormattedTrack {
   id: string;
@@ -21,6 +30,7 @@ interface GuessingGameProps {
   tracks: FormattedTrack[];
   accessToken?: string;
   onStatusChange?: (status: string) => void;
+  onShowAnswer?: (image: string | null) => void;
   seek?: number;
   random?: boolean;
   deviceId?: string | null;
@@ -31,6 +41,7 @@ export default function GuessingGame({
   tracks,
   playlistName,
   onStatusChange,
+  onShowAnswer,
   seek = 0,
   random = false,
   deviceId = null,
@@ -42,10 +53,14 @@ export default function GuessingGame({
   const [hasStarted, setHasStarted] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
   const [playTrack, { isLoading, isError }] = usePlayTrackMutation();
+  const [pausePlayback] = usePausePlaybackMutation();
+  const [resumePlayback] = useResumePlaybackMutation();
+
+  const [isPaused, setIsPaused] = useState(false);
 
   if (isError) {
     toast.error(
-      "Could not start playback (make sure you have an active Spotify device)"
+      "Could not start playback (make sure you have an active Spotify device)",
     );
   }
 
@@ -92,8 +107,33 @@ export default function GuessingGame({
     } catch (err) {
       console.error("Playback failed", err);
       toast.error(
-        `Playback failed: ${err instanceof Error ? err.message : String(err)}`
+        `Playback failed: ${err instanceof Error ? err.message : String(err)}`,
       );
+    }
+  };
+
+  const handlePauseAndResume = async () => {
+    try {
+      if (!hasStarted || isFinished) return;
+
+      if (isPaused) {
+        await resumePlayback({
+          device_id: deviceId ?? undefined,
+        }).unwrap();
+
+        setIsPaused(false);
+        onStatusChange?.("playing");
+      } else {
+        await pausePlayback({
+          device_id: deviceId ?? undefined,
+        }).unwrap();
+
+        setIsPaused(true);
+        onStatusChange?.("paused");
+      }
+    } catch (err) {
+      console.error("Pause/resume failed", err);
+      toast.error("Failed to pause or resume playback");
     }
   };
 
@@ -120,7 +160,7 @@ export default function GuessingGame({
     } catch (err) {
       console.error("Playback failed", err);
       toast.error(
-        `Playback failed: ${err instanceof Error ? err.message : String(err)}`
+        `Playback failed: ${err instanceof Error ? err.message : String(err)}`,
       );
     }
   };
@@ -130,6 +170,7 @@ export default function GuessingGame({
 
     setShowAnswer(true);
     onStatusChange?.("answer_shown");
+    onShowAnswer?.(currentTrack?.image ?? null);
 
     triggerShowAnswerCooldown();
   };
@@ -169,15 +210,6 @@ export default function GuessingGame({
 
   return (
     <>
-      {gamemode == "classic" ? (
-        <h2 className="text-xl font-bold bg-gradient-to-t from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-          {playlistName || "Playlist"}
-        </h2>
-      ) : (
-        <h2 className="text-xl font-bold bg-gradient-to-t from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-          Duo Mode
-        </h2>
-      )}
       <div
         style={{
           display: "flex",
@@ -193,6 +225,15 @@ export default function GuessingGame({
         }}
         className="bg-gray-800"
       >
+        {gamemode == "classic" ? (
+          <h2 className="text-xl font-bold bg-gradient-to-t from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+            {playlistName || "Playlist"}
+          </h2>
+        ) : (
+          <h2 className="text-xl font-bold bg-gradient-to-t from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+            Duo Mode
+          </h2>
+        )}
         <h3>{isFinished && "Quiz Complete!"}</h3>
 
         {hasStarted && (
@@ -325,13 +366,54 @@ export default function GuessingGame({
         )}
       </div>
       <div className="flex justify-center fixed bottom-10 w-full">
-        <Button
-          onClick={handleStartAgain}
-          disabled={isLoading}
-          className="bg-pink-400 rounded-full w-20 h-20"
-        >
-          {isLoading ? "Loading…" : "Play again"}
-        </Button>
+        <div className="flex bg-gray-800 rounded-full p-1 gap-0">
+          <Button
+            onClick={handlePauseAndResume}
+            disabled={isLoading}
+            className={clsx(
+              "rounded-full w-20 h-20 transition-all flex justify-center items-center",
+              isPaused ? "bg-indigo-400 animate-pulse" : "bg-pink-400",
+              isLoading && "opacity-60 cursor-not-allowed",
+            )}
+          >
+            {isLoading ? (
+              <Image
+                src={pause.src}
+                width={42}
+                height={42}
+                alt="Pause Track (loading/disabled)"
+              />
+            ) : isPaused ? (
+              <Image src={play.src} width={42} height={42} alt="Resume Track" />
+            ) : (
+              <Image src={pause.src} width={42} height={42} alt="Pause Track" />
+            )}
+          </Button>
+          <Button
+            onClick={handleStartAgain}
+            disabled={isLoading}
+            className={clsx(
+              "rounded-l-full w-20 h-20 transition-all flex justify-center items-center",
+              isLoading && "opacity-100 cursor-not-allowed animate-spin",
+            )}
+          >
+            {isLoading ? (
+              <Image
+                src={playagain.src}
+                width={42}
+                height={42}
+                alt="Repeat Track (loading/disabled)"
+              />
+            ) : (
+              <Image
+                src={playagain.src}
+                width={42}
+                height={42}
+                alt="Repeat Track"
+              />
+            )}
+          </Button>
+        </div>
       </div>
     </>
   );
