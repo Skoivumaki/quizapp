@@ -100,7 +100,7 @@ export default function GuessingGame({
         device_id: deviceId ?? undefined,
       }).unwrap();
       setHasStarted(true);
-      setShowAnswer(false);
+      setIsPaused(false);
       setIsFinished(false);
       onStatusChange?.("playing");
       console.log("Playback started", deviceId);
