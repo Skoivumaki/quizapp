@@ -20,7 +20,7 @@ export async function GET() {
         Authorization:
           "Basic " +
           Buffer.from(
-            `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`
+            `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`,
           ).toString("base64"),
       },
       body: new URLSearchParams({
@@ -44,13 +44,32 @@ export async function GET() {
 
     const res = NextResponse.redirect(`${baseUrl}/`);
 
-    res.cookies.set("spotify_access_token", accessToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "lax",
-      maxAge: expiresIn,
-      path: "/",
-    });
+    if (process.env.NEXT_PUBLIC_BASE_URL) {
+      res.cookies.set("spotify_access_token", data.access_token, {
+        domain: ".thshosting.xyz",
+        httpOnly: true,
+        secure: true,
+        sameSite: "lax",
+        maxAge: data.expires_in,
+        path: "/",
+      });
+
+      res.cookies.set("production", process.env.NEXT_PUBLIC_BASE_URL, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "lax",
+        maxAge: data.expires_in,
+        path: "/",
+      });
+    } else {
+      res.cookies.set("spotify_access_token", data.access_token, {
+        httpOnly: true,
+        secure: false,
+        sameSite: "lax",
+        maxAge: data.expires_in,
+        path: "/",
+      });
+    }
 
     res.cookies.set("spotify_token_expires_at", expiresAt.toString(), {
       httpOnly: true,

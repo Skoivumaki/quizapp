@@ -19,6 +19,7 @@ export const baseQueryWithReauth: BaseQueryFn<
 
   if (result.error?.status === 401) {
     // attempt token refresh
+    console.log("Attempting token refresh...");
     const refreshResult = await fetch("/quiz/api/spotify/refresh", {
       method: "POST",
       credentials: "include",
