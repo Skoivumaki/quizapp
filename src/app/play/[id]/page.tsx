@@ -11,7 +11,10 @@ import GuessingGame from "@/app/components/GuessingGame";
 import Scoreboard from "@/app/components/Scoreboard";
 import { Button, ButtonSize, ButtonTheme } from "@/app/components/Button";
 import NavBar from "@/app/components/NavBar";
-import Image from "next/image";
+import { useLeaveConfirmation } from "@/hooks/useLeaveConfirmation";
+import { useSpotifyWebPlayback } from "@/hooks/useSpotifyWebPlayback";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
 
 declare global {
   interface Window {
@@ -28,6 +31,7 @@ export interface SpotifyPlayer {
 }
 
 export default function PlayPage() {
+  useLeaveConfirmation(true);
   const accessToken = useAccessToken();
   const { id } = useParams();
 
@@ -56,75 +60,30 @@ export default function PlayPage() {
 
   const formattedTracks = isUsingMixed
     ? mixedPlaylistQuery.tracks
-    : useFormattedTracks(singlePlaylistQuery.data?.tracks.items, {
+    : // eslint-disable-next-line react-hooks/rules-of-hooks
+      useFormattedTracks(singlePlaylistQuery.data?.tracks.items, {
         shuffle: true,
         limit: limitParam,
       });
 
   const data = isUsingMixed ? { name: "Duo Mode" } : singlePlaylistQuery.data;
 
-  const [spotifyDeviceId, setSpotifyDeviceId] = useState<string | null>(null);
-  const [spotifyPlayer, setSpotifyPlayer] = useState<SpotifyPlayer | null>(
-    null,
-  );
-
-  useEffect(() => {
-    return () => {
-      if (spotifyPlayer) spotifyPlayer.disconnect?.();
-    };
-  }, [spotifyPlayer]);
-
-  useEffect(() => {
-    if (!accessToken || !internalPlayer || spotifyPlayer) return;
-
-    const script = document.getElementById("spotify-player-sdk");
-    if (!script) {
-      const el = document.createElement("script");
-      el.id = "spotify-player-sdk";
-      el.src = "https://sdk.scdn.co/spotify-player.js";
-      el.async = true;
-      document.body.appendChild(el);
-    }
-
-    window.onSpotifyWebPlaybackSDKReady = () => {
-      const player = new window.Spotify.Player({
-        name: "QuizApp Internal Player",
-        getOAuthToken: (cb: (token: string) => void) => cb(accessToken),
-        volume: 0.8,
-      });
-
-      player.addListener("ready", ({ device_id }: any) => {
-        setSpotifyDeviceId(device_id);
-        console.log(`Spotify player ready (${device_id})`);
-      });
-      player.addListener("not_ready", ({ device_id }: any) => {
-        console.warn("not_ready:", device_id);
-        toast.warning(`Spotify player not ready (${device_id})`);
-      });
-      player.addListener("initialization_error", (e: any) => {
-        console.error("Initialization error", e);
-        toast.error(`Spotify init error: ${e.message || e}`);
-      });
-      player.addListener("authentication_error", (e: any) => {
-        console.error("Auth error", e);
-        toast.error(`Spotify auth error: ${e.message || e}`);
-      });
-      player.addListener("account_error", (e: any) => {
-        console.error("Account error", e);
-        toast.error(`Spotify account error: ${e.message || e}`);
-      });
-
-      setSpotifyPlayer(player);
-    };
-  }, [accessToken, internalPlayer, spotifyPlayer]);
-
+  const {
+    player: spotifyPlayer,
+    deviceId: spotifyDeviceId,
+    recreatePlayer,
+  } = useSpotifyWebPlayback({
+    enabled: !!accessToken && internalPlayer,
+  });
   const [gameStatus, setGameStatus] = useState("loading");
   const [canScore, setCanScore] = useState(false);
   const [trackImage, setTrackImage] = useState<string | null>(null);
   const [showScoreboard, setShowScoreboard] = useState(true);
   const [showDebugInfo, setShowDebugInfo] = useState(false);
-  // Move control into settings
-  const [autoShowScoreboard, setAutoShowScoreboard] = useState(true);
+
+  const autoShowScoreboard = useSelector(
+    (state: RootState) => state.settings.autoShowScoreboard,
+  );
 
   useEffect(() => {
     setCanScore(gameStatus === "answer_shown");
@@ -146,22 +105,34 @@ export default function PlayPage() {
   }, [isScoreboardAllowed, autoShowScoreboard]);
 
   const handleStartPlayback = async () => {
-    if (!spotifyPlayer) {
-      toast.error("Spotify Player not initialized yet!");
-      return;
-    }
-    if (spotifyPlayer.activateElement) await spotifyPlayer.activateElement();
+    if (!spotifyPlayer) return;
 
     try {
-      const ok = await spotifyPlayer.connect();
-      if (ok) console.log("Spotify player connecting…");
-      else
-        toast.error(
-          "Spotify failed to initialize. Check account or permissions.",
-        );
-    } catch (err: any) {
-      console.error("connect() error:", err);
-      toast.error(`Connect error: ${err.message || err}`);
+      if (spotifyPlayer.activateElement) {
+        await spotifyPlayer.activateElement();
+      }
+
+      const connected = await spotifyPlayer.connect();
+      if (!connected) return;
+
+      console.log("Spotify player connected");
+
+      await new Promise((r) => setTimeout(r, 500));
+
+      if (!spotifyDeviceId) return;
+
+      await fetch("/quiz/api/spotify/me/player", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          device_ids: [spotifyDeviceId],
+          play: false,
+        }),
+      });
+
+      console.log("Playback transferred to SDK device");
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -218,10 +189,10 @@ export default function PlayPage() {
           top: 0,
         }}
       >
-        {/* <button onClick={() => setShowDebugInfo((prev) => !prev)}>
+        <button onClick={() => setShowDebugInfo((prev) => !prev)}>
           Toggle Debug Info
-        </button> */}
-        {/* {showDebugInfo && (
+        </button>
+        {showDebugInfo && (
           <>
             {internalPlayer && (
               <div className="mb-2 text-green-400">
@@ -235,11 +206,10 @@ export default function PlayPage() {
               Playlist loaded with <strong>{formattedTracks.length}</strong>{" "}
               tracks. Limit: <strong>{limitParam}</strong> | Seek Start:
               <strong>{seekParam}ms </strong> | Status: {gameStatus}
-              {isScoreboardVisible && <span> | Scoreboard: Visible</span>}
               {showScoreboard && <span> | Scoreboard: Shown </span>}
             </p>
           </>
-        )} */}
+        )}
 
         {spotifyPlayer && !spotifyDeviceId ? (
           <Button
@@ -260,6 +230,7 @@ export default function PlayPage() {
             deviceId={spotifyDeviceId}
             gamemode={gamemodeParam}
             onShowAnswer={handleShowAnswer}
+            recreatePlayer={recreatePlayer}
           />
         )}
       </div>
