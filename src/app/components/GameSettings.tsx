@@ -57,7 +57,7 @@ export default function GameSettings({
   };
 
   return (
-    <div className="bg-gray-800 p-4 rounded border border-gray-700 text-white max-w-md w-full">
+    <div className="bg-gray-800 text-white max-w-md w-full">
       <div className="flex flex-col gap-4 w-full">
         <label className="flex flex-col gap-2">
           <InfoHeader
