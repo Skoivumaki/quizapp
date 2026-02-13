@@ -80,14 +80,6 @@ export const metadata: Metadata = {
     creator: "@yourhandle",
     images: [`${baseUrl}/og/quiz-app-og.png`],
   },
-  icons: {
-    icon: [
-      { url: "/icons/favicon-32.ico", sizes: "32x32", type: "image/ico" },
-      { url: "/icons/favicon-16.ico", sizes: "16x16", type: "image/ico" },
-    ],
-    apple: [{ url: "/icons/apple-touch-icon.ico", sizes: "180x180" }],
-    shortcut: ["/favicon.ico"],
-  },
   manifest: "/site.webmanifest",
   appleWebApp: {
     capable: true,
@@ -120,17 +112,17 @@ export default async function RootLayout({
   const expiresAt = expiresAtString ? Number(expiresAtString) : 0;
   const isExpired = now > expiresAt;
 
-  if (isExpired && accessToken) {
-    console.log("REFRESH: Expired token and has accessToken");
-    redirect("/api/refresh");
-  }
+  // if (isExpired && accessToken) {
+  //   console.log("REFRESH: Expired token and has accessToken");
+  //   redirect("/api/refresh");
+  // }
 
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ToastContainer />
+        <ToastContainer limit={2} />
         <Providers>
           <TokenProvider accessToken={accessToken}>{children}</TokenProvider>
         </Providers>
