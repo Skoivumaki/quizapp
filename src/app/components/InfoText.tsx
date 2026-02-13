@@ -18,7 +18,7 @@ export function InfoTile({ id, value, infoMap }: InfoTileProps) {
 
   const message =
     infoMap?.[value] || defaultMessages[value] || defaultMessages.default;
-
+  // Id might not be doing anything
   return (
     <div id={`info-${id}`} className="text-sm text-gray-400 rounded p-1">
       {message}
