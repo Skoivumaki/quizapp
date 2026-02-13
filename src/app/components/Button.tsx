@@ -11,6 +11,7 @@ export enum ButtonTheme {
 }
 
 export enum ButtonSize {
+  S = "s",
   M = "m",
   L = "l",
   XL = "xl",
@@ -35,7 +36,7 @@ export const Button = memo(
         disabled = false,
         ...otherProps
       },
-      ref
+      ref,
     ) => {
       const base =
         "inline-flex items-center justify-center font-semibold rounded-4xl transition-all duration-200 ease-out active:scale-95 focus:scale-102";
@@ -46,13 +47,13 @@ export const Button = memo(
         [ButtonTheme.PRIMARY]: "bg-pink-400 focus:bg-purple-400",
         [ButtonTheme.PRIMARY2]:
           "bg-green-500 border-2 border-green-500 text-black focus:bg-black focus:text-green-500",
-        [ButtonTheme.CLEAR]:
-          "bg-green-500/0 border-2 border-green-500 text-green-500 focus:text-white focus:ring-2 focus:ring-green-500",
+        [ButtonTheme.CLEAR]: "focus:text-white",
         [ButtonTheme.INVERT]:
           "bg-black border-2 border-green-500 text-green-500 focus:bg-green-500 focus:text-black",
       }[theme];
 
       const sizeClasses = {
+        [ButtonSize.S]: "text-sm px-0.5 py-0.5",
         [ButtonSize.M]: "text-sm px-3 py-1.5",
         [ButtonSize.L]: "text-base px-4 py-2",
         [ButtonSize.XL]: "text-lg px-5 py-2.5",
@@ -75,8 +76,8 @@ export const Button = memo(
           {children}
         </button>
       );
-    }
-  )
+    },
+  ),
 );
 
 Button.displayName = "Button";
