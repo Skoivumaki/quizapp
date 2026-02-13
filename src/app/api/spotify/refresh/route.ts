@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
-export async function GET() {
+export async function POST() {
   try {
     const cookieStore = await cookies();
     const refreshToken = cookieStore.get("spotify_refresh_token")?.value;
+
     const baseUrl =
       process.env.NEXT_PUBLIC_BASE_URL || "http://127.0.0.1:3000/quiz";
 
@@ -12,6 +13,10 @@ export async function GET() {
       console.error("No refresh token cookie found");
       return NextResponse.redirect(`${baseUrl}/api/login`);
     }
+
+    // if (!refreshToken) {
+    //   return NextResponse.json({ error: "No refresh token" }, { status: 401 });
+    // }
 
     const response = await fetch("https://accounts.spotify.com/api/token", {
       method: "POST",
@@ -35,14 +40,18 @@ export async function GET() {
       return new NextResponse("Failed to refresh token", { status: 500 });
     }
 
+    console.log("data");
     const data = await response.json();
+    console.log(data);
 
     const accessToken = data.access_token;
     const expiresIn = data.expires_in;
     const newRefreshToken = data.refresh_token ?? refreshToken;
     const expiresAt = Date.now() + expiresIn * 900;
 
-    const res = NextResponse.redirect(`${baseUrl}/`);
+    const res = NextResponse.json({
+      access_token: data.access_token,
+    });
 
     if (process.env.NEXT_PUBLIC_BASE_URL) {
       res.cookies.set("spotify_access_token", data.access_token, {

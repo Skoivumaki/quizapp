@@ -20,13 +20,13 @@ export default async function RootLayout({
   const expiresAt = expiresAtString ? Number(expiresAtString) : 0;
   const isExpired = now > expiresAt;
 
-  if (isExpired && accessToken) {
-    console.log("REFRESH: Expired token and has accessToken");
-  }
+  // if (isExpired && accessToken) {
+  //   console.log("REFRESH: Expired token and has accessToken");
+  // }
   return (
     <>
       {!accessToken && <LoginPrompt />}
-      {isExpired && <LoginPrompt />}
+      {/* {isExpired && <LoginPrompt />} */}
       {children}
     </>
   );
