@@ -58,7 +58,7 @@ export default function GuessingGame({
   const [showAnswer, setShowAnswer] = useState(false);
   const [isAnswerCoolingDown, setIsAnswerCoolingDown] = useState(false);
 
-  const [playTrack, { isLoading, isError }] = usePlayTrackMutation();
+  const [playTrack, { isLoading }] = usePlayTrackMutation();
   const [pausePlayback] = usePausePlaybackMutation();
   const [resumePlayback] = useResumePlaybackMutation();
 
@@ -73,12 +73,6 @@ export default function GuessingGame({
     if (!totalTracks) return 0;
     return ((currentIndex + 1) / totalTracks) * 100;
   }, [currentIndex, totalTracks]);
-
-  useEffect(() => {
-    if (isError) {
-      toast.error("Playback failed. Is Spotify connected?");
-    }
-  }, [isError]);
 
   useEffect(() => {
     if (!onStatusChange) return;
@@ -96,17 +90,26 @@ export default function GuessingGame({
       toast.warning("Spotify player not ready");
       return false;
     }
+
     return true;
   };
 
   const calculateStartPosition = (duration: number) => {
     if (!random) return seek;
     if (duration <= 30000) return 0;
+
     return Math.floor(Math.random() * (duration - 30000));
   };
 
-  const play = async (track: FormattedTrack, position: number) => {
-    if (!deviceId) return;
+  const play = async (
+    track: FormattedTrack,
+    position: number,
+    retryCount = 0,
+  ): Promise<boolean> => {
+    if (!deviceId) {
+      toast.warning("Spotify player not ready");
+      return false;
+    }
 
     try {
       await playTrack({
@@ -114,12 +117,31 @@ export default function GuessingGame({
         position_ms: position,
         device_id: deviceId,
       }).unwrap();
+
+      return true;
     } catch (err: any) {
-      if (err?.status === 404) {
-        await new Promise((r) => setTimeout(r, 800));
-        return play(track, position);
+      console.error("Playback failed", err);
+
+      if (err?.status === 404 && retryCount < 3) {
+        await new Promise((resolve) => setTimeout(resolve, 800));
+        return play(track, position, retryCount + 1);
       }
-      toast.error("Playback failed");
+
+      if (err?.status === 404) {
+        toast.error(
+          "Spotify device was not found. Reconnect the Spotify player.",
+        );
+      } else if (err?.status === 403) {
+        toast.error(
+          "Spotify playback is not allowed. Check Premium/account access.",
+        );
+      } else if (err?.status === 401) {
+        toast.error("Spotify session expired. Please log in again.");
+      } else {
+        toast.error("Playback failed. Is Spotify connected?");
+      }
+
+      return false;
     }
   };
 
@@ -132,10 +154,11 @@ export default function GuessingGame({
     if (!currentTrack || !ensureDeviceReady()) return;
 
     const position = calculateStartPosition(currentTrack.duration_ms);
+    const success = await play(currentTrack, position);
+
+    if (!success) return;
+
     setStartPosition(position);
-
-    await play(currentTrack, position);
-
     setHasStarted(true);
     setIsFinished(false);
     resetTrackState();
@@ -144,7 +167,10 @@ export default function GuessingGame({
   const handleReplay = async () => {
     if (!currentTrack || !ensureDeviceReady()) return;
 
-    await play(currentTrack, startPosition);
+    const success = await play(currentTrack, startPosition);
+
+    if (!success) return;
+
     setIsPaused(false);
   };
 
@@ -163,9 +189,12 @@ export default function GuessingGame({
     const nextIndex = currentIndex + 1;
     const nextTrack = tracks[nextIndex];
 
-    const position = calculateStartPosition(nextTrack.duration_ms);
+    if (!nextTrack) return;
 
-    await play(nextTrack, position);
+    const position = calculateStartPosition(nextTrack.duration_ms);
+    const success = await play(nextTrack, position);
+
+    if (!success) return;
 
     setCurrentIndex(nextIndex);
     setStartPosition(position);
@@ -181,8 +210,10 @@ export default function GuessingGame({
       } else {
         await pausePlayback({ device_id: deviceId! }).unwrap();
       }
+
       setIsPaused((prev) => !prev);
-    } catch {
+    } catch (err) {
+      console.error("Pause/Resume failed", err);
       toast.error("Pause/Resume failed");
     }
   };
@@ -246,8 +277,8 @@ export default function GuessingGame({
         {!hasStarted && !isFinished && (
           <button
             onClick={handlePlayFirst}
-            disabled={isLoading}
-            className="bg-pink-400 text-black px-4 py-2 rounded font-semibold"
+            disabled={isLoading || !deviceId}
+            className="bg-pink-400 text-black px-4 py-2 rounded font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? "Loading…" : "Play First Track"}
           </button>
@@ -271,7 +302,8 @@ export default function GuessingGame({
         {hasStarted && showAnswer && !isFinished && (
           <button
             onClick={handleNext}
-            className="bg-pink-400 text-black px-4 py-2 rounded font-semibold"
+            disabled={isLoading}
+            className="bg-pink-400 text-black px-4 py-2 rounded font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {currentIndex >= totalTracks - 1 ? "Finish Quiz" : "Next Song"}
           </button>
@@ -283,13 +315,14 @@ export default function GuessingGame({
           </p>
         )}
       </div>
+
       <div className="fixed bottom-10 w-full flex justify-center">
         <div className="flex bg-gray-800 rounded-full p-1">
           <Button
             onClick={handlePauseToggle}
-            disabled={isLoading}
+            disabled={isLoading || !deviceId}
             className={clsx(
-              "w-20 h-20 rounded-full flex items-center justify-center transition",
+              "w-20 h-20 rounded-full flex items-center justify-center transition disabled:opacity-50 disabled:cursor-not-allowed",
               isPaused ? "bg-indigo-400 animate-pulse" : "bg-pink-400",
             )}
           >
@@ -303,8 +336,8 @@ export default function GuessingGame({
 
           <Button
             onClick={handleReplay}
-            disabled={isLoading}
-            className="w-20 h-20 flex items-center justify-center"
+            disabled={isLoading || !deviceId}
+            className="w-20 h-20 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Image src={playagain} width={42} height={42} alt="Replay Track" />
           </Button>
