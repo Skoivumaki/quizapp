@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
+
+import { useEffect, useMemo, useState } from "react";
 
 interface Player {
   name: string;
@@ -26,8 +27,43 @@ export default function Scoreboard({
   const [showSettings, setShowSettings] = useState(false);
   const [chosenPlayer, setChosenPlayer] = useState<string | null>(null);
 
+  const sortedPlayers = useMemo(() => {
+    return [...players].sort((a, b) => {
+      if (b.points !== a.points) return b.points - a.points;
+      return a.name.localeCompare(b.name);
+    });
+  }, [players]);
+
+  const getRankAccentClass = (index: number, playerName: string) => {
+    if (chosenPlayer === playerName) {
+      return "bg-purple-400 text-black ring-2 ring-purple-200";
+    }
+
+    if (index === 0) {
+      return "bg-yellow-400/20 text-white ring-1 ring-yellow-300/30";
+    }
+
+    if (index === 1) {
+      return "bg-slate-200/35 text-white ring-1 ring-slate-200/25";
+    }
+
+    if (index === 2) {
+      return "bg-orange-500/15 text-white ring-1 ring-orange-300/25";
+    }
+
+    return "bg-gray-700 text-white";
+  };
+
+  const getRankBadgeClass = (index: number) => {
+    if (index === 0) return "bg-yellow-300 text-black";
+    if (index === 1) return "bg-slate-200 text-black";
+    if (index === 2) return "bg-orange-400 text-black";
+    return "bg-gray-600 text-gray-200";
+  };
+
   useEffect(() => {
     if (typeof window === "undefined") return;
+
     try {
       const stored = localStorage.getItem("scoreboard");
       if (stored) setPlayers(JSON.parse(stored));
@@ -40,6 +76,7 @@ export default function Scoreboard({
 
   useEffect(() => {
     if (!loaded) return;
+
     try {
       localStorage.setItem("scoreboard", JSON.stringify(players));
     } catch (e) {
@@ -56,20 +93,25 @@ export default function Scoreboard({
 
   const addPlayer = () => {
     const trimmed = newPlayer.trim();
+
     if (!trimmed) return;
+
     if (players.some((p) => p.name.toLowerCase() === trimmed.toLowerCase())) {
       setNewPlayer("");
       return;
     }
+
     setPlayers([...players, { name: trimmed, points: 0 }]);
     setNewPlayer("");
   };
 
   const incrementScore = (name: string) => {
     if (!canScore || roundClaimed) return;
+
     setPlayers((prev) =>
-      prev.map((p) => (p.name === name ? { ...p, points: p.points + 1 } : p))
+      prev.map((p) => (p.name === name ? { ...p, points: p.points + 1 } : p)),
     );
+
     setRoundClaimed(true);
     setChosenPlayer(name);
     onConsumeScore();
@@ -84,6 +126,7 @@ export default function Scoreboard({
 
   const clearScores = () => {
     if (players.length === 0) return;
+
     if (window.confirm("Set all scores to 0 but keep player names?")) {
       setPlayers((prev) => prev.map((p) => ({ ...p, points: 0 })));
     }
@@ -95,6 +138,7 @@ export default function Scoreboard({
         <h3 className="m-0 text-lg font-semibold w-full text-left">
           Scoreboard
         </h3>
+
         <button
           onClick={onToggleVisibility}
           title={isVisible ? "Hide Scoreboard" : "Show Scoreboard"}
@@ -102,6 +146,7 @@ export default function Scoreboard({
         >
           Hide
         </button>
+
         <button
           onClick={() => setShowSettings((s) => !s)}
           title="Settings"
@@ -119,8 +164,12 @@ export default function Scoreboard({
               placeholder="Add participant"
               value={newPlayer}
               onChange={(e) => setNewPlayer(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") addPlayer();
+              }}
               className="flex-1 px-2 py-1 rounded border border-gray-800 bg-gray-800 text-white placeholder-gray-400"
             />
+
             <button
               onClick={addPlayer}
               className="bg-green-500 text-black font-semibold rounded px-3 py-1 hover:bg-green-400 transition"
@@ -149,21 +198,31 @@ export default function Scoreboard({
         <p className="text-gray-400">No participants yet.</p>
       ) : (
         <ul className="list-none w-full p-0 flex flex-col gap-2">
-          {players.map((p) => (
+          {sortedPlayers.map((p, index) => (
             <li
               key={p.name}
               onClick={() => incrementScore(p.name)}
-              className={`flex justify-between items-center px-3 py-2 rounded cursor-pointer font-medium transition ${
-                chosenPlayer === p.name
-                  ? "bg-purple-400 text-black"
-                  : "bg-gray-700 text-white"
-              } ${
+              className={`flex justify-between items-center px-3 py-2 rounded cursor-pointer font-medium transition ${getRankAccentClass(
+                index,
+                p.name,
+              )} ${
                 canScore && !roundClaimed
                   ? "hover:bg-neutral-600"
-                  : "opacity-60 cursor-not-allowed"
+                  : "opacity-80 cursor-not-allowed"
               }`}
             >
-              <span>{p.name}</span>
+              <div className="flex items-center gap-2 min-w-0">
+                <span
+                  className={`flex h-6 min-w-6 items-center justify-center rounded-full px-2 text-xs font-bold ${getRankBadgeClass(
+                    index,
+                  )}`}
+                >
+                  {index + 1}
+                </span>
+
+                <span className="truncate">{p.name}</span>
+              </div>
+
               <span className="text-pink-400 font-bold text-shadow-xs text-shadow-gray-700">
                 {p.points}
               </span>
@@ -172,7 +231,7 @@ export default function Scoreboard({
         </ul>
       )}
 
-      <p className="text-sm text-purple-400 mt-4 text-center">
+      <p className="text-m text-purple-400 mt-4 text-center">
         {canScore
           ? roundClaimed
             ? "Point awarded this round"
