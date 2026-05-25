@@ -1,3 +1,5 @@
+"use client";
+
 type TickToggleProps = {
   checked: boolean;
   onChange: (value: boolean) => void;

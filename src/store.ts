@@ -4,11 +4,19 @@ import playerReducer from "./playerSlice";
 import settingsReducer from "./settingsSlice";
 import { quizApi } from "./quizApi";
 
+const isBrowser = typeof window !== "undefined";
+
 const loadSettings = () => {
+  if (!isBrowser) return undefined;
+
   try {
-    const serialized = localStorage.getItem("settings");
+    const serialized = window.localStorage.getItem("settings");
+
     if (!serialized) return undefined;
-    return { settings: JSON.parse(serialized) };
+
+    return {
+      settings: JSON.parse(serialized),
+    };
   } catch {
     return undefined;
   }
@@ -26,10 +34,17 @@ export const store = configureStore({
   preloadedState: loadSettings(),
 });
 
-store.subscribe(() => {
-  const state = store.getState();
-  localStorage.setItem("settings", JSON.stringify(state.settings));
-});
+if (isBrowser) {
+  store.subscribe(() => {
+    const state = store.getState();
+
+    try {
+      window.localStorage.setItem("settings", JSON.stringify(state.settings));
+    } catch {
+      // Ignore localStorage write errors, for example private browsing mode.
+    }
+  });
+}
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

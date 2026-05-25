@@ -32,39 +32,49 @@ export interface SpotifyPlayer {
 
 export default function PlayPage() {
   useLeaveConfirmation(true);
+
   const accessToken = useAccessToken();
-  const { id } = useParams();
+  const params = useParams();
+  const rawId = params.id;
+  const playlistId = Array.isArray(rawId) ? rawId[0] : rawId;
 
   const searchParams = useSearchParams();
   const limitParam = Number(searchParams.get("limit")) || 20;
   const seekParam = Number(searchParams.get("seek")) || 0;
-  const gamemodeParam = Number(searchParams.get("gm")) || "classic";
+  const gamemodeParam = searchParams.get("gm") || "classic";
   const selectedPlaylistId2 = searchParams.get("playlist2");
   const isRandom = searchParams.get("random") === "true";
   const internalPlayer = searchParams.get("internalPlayer") === "true";
 
-  const singlePlaylistQuery = useGetPlaylistQuery(id as string, {
-    skip: !!selectedPlaylistId2,
+  const singlePlaylistQuery = useGetPlaylistQuery(playlistId as string, {
+    skip: !!selectedPlaylistId2 || !playlistId,
   });
 
   const mixedPlaylistQuery = useMixedPlaylists(
-    id as string,
+    playlistId as string,
     selectedPlaylistId2,
     { shuffle: true, limit: limitParam },
   );
 
   const isUsingMixed = !!selectedPlaylistId2;
+
   const isLoading = isUsingMixed
     ? mixedPlaylistQuery.isLoading
     : singlePlaylistQuery.isLoading;
 
+  const playlistItems =
+    singlePlaylistQuery.data?.items?.items ??
+    singlePlaylistQuery.data?.tracks?.items ??
+    [];
+
+  const singleFormattedTracks = useFormattedTracks(playlistItems, {
+    shuffle: true,
+    limit: limitParam,
+  });
+
   const formattedTracks = isUsingMixed
     ? mixedPlaylistQuery.tracks
-    : // eslint-disable-next-line react-hooks/rules-of-hooks
-      useFormattedTracks(singlePlaylistQuery.data?.tracks.items, {
-        shuffle: true,
-        limit: limitParam,
-      });
+    : singleFormattedTracks;
 
   const data = isUsingMixed ? { name: "Duo Mode" } : singlePlaylistQuery.data;
 
@@ -75,6 +85,7 @@ export default function PlayPage() {
   } = useSpotifyWebPlayback({
     enabled: !!accessToken && internalPlayer,
   });
+
   const [gameStatus, setGameStatus] = useState("loading");
   const [canScore, setCanScore] = useState(false);
   const [trackImage, setTrackImage] = useState<string | null>(null);
@@ -88,6 +99,12 @@ export default function PlayPage() {
   useEffect(() => {
     setCanScore(gameStatus === "answer_shown");
   }, [gameStatus]);
+
+  useEffect(() => {
+    if (singlePlaylistQuery.error) {
+      toast("Error loading playlist");
+    }
+  }, [singlePlaylistQuery.error]);
 
   const handleConsumeScore = () => setCanScore(false);
 
@@ -140,26 +157,85 @@ export default function PlayPage() {
     setTrackImage(image);
   };
 
-  if (isLoading) return;
-  <>
-    <div
-      style={{
-        color: "white",
-        padding: "1rem",
-        textAlign: "center",
-        display: "flex",
-        flexDirection: "column",
-        height: "100vh",
-        maxHeight: "100vh",
-        overflow: "clip",
-      }}
-    ></div>
-    <p>Loading playlist...</p>
-  </>;
+  if (isLoading) {
+    return (
+      <>
+        <NavBar variant="game" />
+        <div
+          style={{
+            color: "white",
+            padding: "1rem",
+            textAlign: "center",
+            display: "flex",
+            flexDirection: "column",
+            height: "100vh",
+            maxHeight: "100vh",
+            overflow: "clip",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <p>Loading playlist...</p>
+        </div>
+      </>
+    );
+  }
+
+  if (!isUsingMixed && singlePlaylistQuery.error) {
+    return (
+      <>
+        <NavBar variant="game" />
+        <div
+          style={{
+            color: "white",
+            padding: "1rem",
+            textAlign: "center",
+            display: "flex",
+            flexDirection: "column",
+            height: "100vh",
+            maxHeight: "100vh",
+            overflow: "clip",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <p>Failed to load playlist.</p>
+        </div>
+      </>
+    );
+  }
+
+  if (!isUsingMixed && playlistItems.length === 0) {
+    return (
+      <>
+        <NavBar variant="game" />
+        <div
+          style={{
+            color: "white",
+            padding: "1rem",
+            textAlign: "center",
+            display: "flex",
+            flexDirection: "column",
+            height: "100vh",
+            maxHeight: "100vh",
+            overflow: "clip",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <p>
+            This playlist has no playable items, or Spotify did not return its
+            contents.
+          </p>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
       <NavBar variant="game" />
+
       <div
         className="pt-10"
         style={{
@@ -167,13 +243,14 @@ export default function PlayPage() {
           height: "80vh",
           maxHeight: "80vh",
           overflow: "clip",
-          backgroundImage: `url(${trackImage})`,
+          backgroundImage: trackImage ? `url(${trackImage})` : undefined,
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
           backgroundSize: "cover",
           filter: "blur(8px)",
         }}
-      ></div>
+      />
+
       <div
         className="py-2 gap-2 mt-12"
         style={{
@@ -192,6 +269,7 @@ export default function PlayPage() {
         <button onClick={() => setShowDebugInfo((prev) => !prev)}>
           Toggle Debug Info
         </button>
+
         {showDebugInfo && (
           <>
             {internalPlayer && (
@@ -202,9 +280,10 @@ export default function PlayPage() {
                   : "(initializing…)"}
               </div>
             )}
+
             <p>
               Playlist loaded with <strong>{formattedTracks.length}</strong>{" "}
-              tracks. Limit: <strong>{limitParam}</strong> | Seek Start:
+              tracks. Limit: <strong>{limitParam}</strong> | Seek Start:{" "}
               <strong>{seekParam}ms </strong> | Status: {gameStatus}
               {showScoreboard && <span> | Scoreboard: Shown </span>}
             </p>

@@ -12,7 +12,7 @@ export default function SearchPlaylist({
     owner: string,
     description: string,
     totalTracks: number,
-    imageUrl: string | null
+    imageUrl: string | null,
   ) => void;
 }) {
   const [search, setSearch] = useState("");
@@ -22,7 +22,7 @@ export default function SearchPlaylist({
 
   const { data, isFetching, error } = useSearchPlaylistsQuery(
     { query: submitted, limit, offset },
-    { skip: !submitted }
+    { skip: !submitted },
   );
 
   const currentItems = data?.playlists?.items ?? [];
@@ -44,6 +44,9 @@ export default function SearchPlaylist({
   return (
     <div className="text-white flex flex-col items-center w-full">
       <h1 className="text-xl font-bold mb-4">Search Playlists from Spotify</h1>
+      <p className="mb-4 text-center text-red-500">
+        Using other users playlists no longer works as of march 9th, 2026.
+      </p>
 
       <form onSubmit={handleSubmit} className="mb-4 w-full flex justify-center">
         <input
@@ -84,7 +87,7 @@ export default function SearchPlaylist({
                 owner,
                 description,
                 totalTracks,
-                imageUrl
+                imageUrl,
               ) => {
                 onSelect(
                   pl.id,
@@ -92,7 +95,7 @@ export default function SearchPlaylist({
                   pl.owner?.display_name,
                   pl.description,
                   pl.tracks.total,
-                  pl.images.length > 0 ? pl.images[0].url : null
+                  pl.images.length > 0 ? pl.images[0].url : null,
                 );
               }}
               isLoading={isFetching}

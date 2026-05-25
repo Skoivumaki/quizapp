@@ -11,7 +11,7 @@ import UserInfo from "./UserInfo";
 import { Button } from "./Button";
 import clsx from "clsx";
 import Image from "next/image";
-import play from "@/shared/assets/icons/play.svg";
+import playbutton from "@/shared/assets/icons/play.svg";
 import pause from "@/shared/assets/icons/pause.svg";
 import playagain from "@/shared/assets/icons/playagain.svg";
 import { useSelector } from "react-redux";
@@ -294,7 +294,7 @@ export default function GuessingGame({
             )}
           >
             <Image
-              src={isPaused ? play : pause}
+              src={isPaused ? playbutton : pause}
               width={42}
               height={42}
               alt="Toggle Playback"

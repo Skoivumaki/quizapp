@@ -1,8 +1,8 @@
-import { useGetUserProfileQuery } from "@/spotifyApi";
+import { useGetCurrentUserQuery } from "@/spotifyApi";
 import Image from "next/image";
 
 export default function UserInfo({ id }: { id: string }) {
-  const { data, error, isLoading } = useGetUserProfileQuery(id);
+  const { data, error, isLoading } = useGetCurrentUserQuery();
   if (isLoading) return <p>Loading user info...</p>;
   if (error) return <p>Error loading user info</p>;
   if (!data) return <p>No user info available</p>;

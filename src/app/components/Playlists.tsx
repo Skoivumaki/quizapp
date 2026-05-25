@@ -16,7 +16,7 @@ export default function Playlist({
     owner: string,
     description: string,
     totalTracks: number,
-    imageUrl: string | null
+    imageUrl: string | null,
   ) => void;
 }) {
   const {
@@ -34,10 +34,7 @@ export default function Playlist({
     error: playlistsError,
     isLoading: playlistsLoading,
     isFetching,
-  } = useGetUserPlaylistsQuery(
-    { userId: user?.id, offset },
-    { skip: !user?.id }
-  );
+  } = useGetUserPlaylistsQuery({ offset }, { skip: !user });
 
   useEffect(() => {
     if (playlistsData?.items) {
@@ -46,7 +43,7 @@ export default function Playlist({
       setAllPlaylists((prev) => {
         const existingIds = new Set(prev.map((p) => p.id));
         const newItems = playlistsData.items.filter(
-          (p: any) => !existingIds.has(p.id)
+          (p: any) => !existingIds.has(p.id),
         );
 
         return offset === 0 ? playlistsData.items : [...prev, ...newItems];
@@ -58,15 +55,18 @@ export default function Playlist({
     }
   }, [playlistsData, offset]);
 
-  if (userError) toast("Error loading playlists");
-  if (playlistsError) toast("Error loading playlists");
+  useEffect(() => {
+    if (userError || playlistsError) {
+      toast("Error loading playlists");
+    }
+  }, [userError, playlistsError]);
 
   const showSkeleton =
     userLoading || playlistsLoading || isFetching || renderPending;
 
   const handleLoadMore = () => {
     if (playlistsData?.next && !isFetching) {
-      setOffset((prev) => prev + playlistsData.limit);
+      setOffset((prev) => prev + (playlistsData.limit ?? 20));
     }
   };
 
@@ -74,11 +74,11 @@ export default function Playlist({
 
   return (
     <div className="w-full">
-      {/* Show login prompt if refresh fails */}
       {typeof userError === "object" &&
         userError !== null &&
         "status" in userError &&
         (userError as any).status === 401 && <LoginPrompt />}
+
       {showSkeleton && offset === 0 && (
         <>
           {Array.from({ length: 5 }).map((_, i) => (
@@ -98,28 +98,33 @@ export default function Playlist({
           ))}
         </>
       )}
+
       {playlistsError && <p>Error loading playlists</p>}
 
       {allPlaylists.length > 0 ? (
         <>
           <ul>
-            {allPlaylists.map((pl: any) => (
-              <PlaylistItem
-                key={pl.id}
-                playlist={pl}
-                onSelect={() => {
-                  onSelect(
-                    pl.id,
-                    pl.name,
-                    pl.owner?.display_name,
-                    pl.description,
-                    pl.tracks.total,
-                    pl.images?.length > 0 ? pl.images[0].url : null
-                  );
-                }}
-                isLoading={userLoading || playlistsLoading}
-              />
-            ))}
+            {allPlaylists.map((pl: any) => {
+              const totalTracks = pl.items?.total ?? pl.tracks?.total ?? 0;
+
+              return (
+                <PlaylistItem
+                  key={pl.id}
+                  playlist={pl}
+                  onSelect={() => {
+                    onSelect(
+                      pl.id,
+                      pl.name,
+                      pl.owner?.display_name ?? "Unknown owner",
+                      pl.description ?? "",
+                      totalTracks,
+                      pl.images?.length > 0 ? pl.images[0].url : null,
+                    );
+                  }}
+                  isLoading={userLoading || playlistsLoading}
+                />
+              );
+            })}
           </ul>
 
           <div className="mt-4 text-center">
@@ -135,7 +140,7 @@ export default function Playlist({
           </div>
         </>
       ) : (
-        !playlistsLoading && <p>No playlists found.</p>
+        !playlistsLoading && !showSkeleton && <p>No playlists found.</p>
       )}
     </div>
   );

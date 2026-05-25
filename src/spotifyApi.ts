@@ -9,33 +9,32 @@ export const spotifyApi = createApi({
       any,
       { query: string; limit?: number; offset?: number }
     >({
-      query: ({ query, limit = 20, offset = 0 }) =>
-        `search?q=${encodeURIComponent(
+      query: ({ query, limit = 5, offset = 0 }) => {
+        const safeLimit = Math.min(Math.max(limit, 1), 10);
+
+        return `search?q=${encodeURIComponent(
           query,
-        )}&type=playlist&limit=${limit}&offset=${offset}`,
+        )}&type=playlist&limit=${safeLimit}&offset=${offset}`;
+      },
     }),
+
     getCurrentUser: builder.query<any, void>({
       query: () => "me",
     }),
-    getUserProfile: builder.query<any, string>({
-      query: (userId) => `users/${userId}`,
-    }),
-    getUserPlaylists: builder.query<
-      any,
-      { userId?: string; limit?: number; offset?: number }
-    >({
-      query: ({ userId, limit = 20, offset = 0 }) => {
-        const base = userId ? `users/${userId}/playlists` : `me/playlists`;
 
-        return `${base}?limit=${limit}&offset=${offset}`;
-      },
+    getUserPlaylists: builder.query<any, { limit?: number; offset?: number }>({
+      query: ({ limit = 20, offset = 0 }) =>
+        `me/playlists?limit=${limit}&offset=${offset}`,
     }),
+
     getTrack: builder.query<any, string>({
       query: (id) => `tracks/${id}`,
     }),
+
     getPlaylist: builder.query<any, string>({
       query: (id) => `playlists/${id}`,
     }),
+
     playPlaylist: builder.mutation<void, string>({
       query: (id) => ({
         url: "me/player/play",
@@ -45,6 +44,7 @@ export const spotifyApi = createApi({
         },
       }),
     }),
+
     playTrack: builder.mutation<
       void,
       { id: string; position_ms?: number; device_id?: string }
@@ -60,6 +60,7 @@ export const spotifyApi = createApi({
         },
       }),
     }),
+
     pausePlayback: builder.mutation<void, { device_id?: string }>({
       query: ({ device_id }) => ({
         url: "me/player/pause",
@@ -81,7 +82,6 @@ export const spotifyApi = createApi({
 export const {
   useSearchPlaylistsQuery,
   useGetCurrentUserQuery,
-  useGetUserProfileQuery,
   useGetUserPlaylistsQuery,
   useGetTrackQuery,
   useGetPlaylistQuery,
