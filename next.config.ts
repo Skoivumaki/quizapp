@@ -1,10 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-basePath: '/quiz',
+  basePath: "/quiz",
+
   typescript: {
     ignoreBuildErrors: true,
   },
+
   images: {
     remotePatterns: [
       {
@@ -18,7 +20,5 @@ basePath: '/quiz',
     ],
   },
 };
-
-module.exports = nextConfig;
 
 export default nextConfig;

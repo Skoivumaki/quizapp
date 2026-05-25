@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { useAccessToken } from "../../providers";
 import { useGetPlaylistQuery } from "@/spotifyApi";
@@ -45,6 +45,8 @@ export default function PlayPage() {
   const selectedPlaylistId2 = searchParams.get("playlist2");
   const isRandom = searchParams.get("random") === "true";
   const internalPlayer = searchParams.get("internalPlayer") === "true";
+
+  const hasTransferredPlaybackRef = useRef(false);
 
   const singlePlaylistQuery = useGetPlaylistQuery(playlistId as string, {
     skip: !!selectedPlaylistId2 || !playlistId,
@@ -106,6 +108,43 @@ export default function PlayPage() {
     }
   }, [singlePlaylistQuery.error]);
 
+  useEffect(() => {
+    hasTransferredPlaybackRef.current = false;
+  }, [spotifyDeviceId]);
+
+  useEffect(() => {
+    if (!internalPlayer) return;
+    if (!spotifyDeviceId) return;
+    if (hasTransferredPlaybackRef.current) return;
+
+    const transferPlayback = async () => {
+      try {
+        const response = await fetch("/quiz/api/spotify/me/player", {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            device_ids: [spotifyDeviceId],
+            play: false,
+          }),
+        });
+
+        if (!response.ok) {
+          console.error("Failed to transfer playback", response.status);
+          return;
+        }
+
+        hasTransferredPlaybackRef.current = true;
+        console.log("Playback transferred to SDK device:", spotifyDeviceId);
+      } catch (err) {
+        console.error("Playback transfer failed", err);
+      }
+    };
+
+    transferPlayback();
+  }, [internalPlayer, spotifyDeviceId]);
+
   const handleConsumeScore = () => setCanScore(false);
 
   const isScoreboardAllowed =
@@ -130,26 +169,15 @@ export default function PlayPage() {
       }
 
       const connected = await spotifyPlayer.connect();
-      if (!connected) return;
+
+      if (!connected) {
+        console.error("Spotify player failed to connect");
+        return;
+      }
 
       console.log("Spotify player connected");
-
-      await new Promise((r) => setTimeout(r, 500));
-
-      if (!spotifyDeviceId) return;
-
-      await fetch("/quiz/api/spotify/me/player", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          device_ids: [spotifyDeviceId],
-          play: false,
-        }),
-      });
-
-      console.log("Playback transferred to SDK device");
     } catch (err) {
-      console.error(err);
+      console.error("Spotify player connection failed", err);
     }
   };
 
