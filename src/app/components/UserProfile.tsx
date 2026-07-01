@@ -1,10 +1,8 @@
 "use client";
-import { useSaveSpotifyUserMutation } from "@/quizApi";
 import { useGetCurrentUserQuery } from "@/spotifyApi";
-import { useEffect } from "react";
 import Image from "next/image";
 
-export default function Profile(accessToken: string) {
+export default function Profile() {
   const { data, error, isLoading } = useGetCurrentUserQuery();
 
   if (isLoading) return <p>Loading...</p>;

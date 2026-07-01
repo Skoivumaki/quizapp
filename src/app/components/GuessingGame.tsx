@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { createPortal } from "react-dom";
 import {
   usePausePlaybackMutation,
   usePlayTrackMutation,
@@ -37,6 +38,7 @@ interface GuessingGameProps {
   random?: boolean;
   deviceId?: string | null;
   gamemode?: string | null;
+  recreatePlayer?: () => void;
 }
 
 export default function GuessingGame({
@@ -57,6 +59,9 @@ export default function GuessingGame({
   const [isPaused, setIsPaused] = useState(false);
   const [showAnswer, setShowAnswer] = useState(false);
   const [isAnswerCoolingDown, setIsAnswerCoolingDown] = useState(false);
+  const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(
+    null,
+  );
 
   const [playTrack, { isLoading }] = usePlayTrackMutation();
   const [pausePlayback] = usePausePlaybackMutation();
@@ -85,19 +90,23 @@ export default function GuessingGame({
     onStatusChange("playing");
   }, [hasStarted, showAnswer, isPaused, isFinished, onStatusChange]);
 
+  // Locate the portal container on the desktop layout
+  useEffect(() => {
+    const container = document.getElementById("playback-controls-container");
+    setPortalContainer(container);
+  }, []);
+
   const ensureDeviceReady = () => {
     if (!deviceId) {
       toast.warning("Spotify player not ready");
       return false;
     }
-
     return true;
   };
 
   const calculateStartPosition = (duration: number) => {
     if (!random) return seek;
     if (duration <= 30000) return 0;
-
     return Math.floor(Math.random() * (duration - 30000));
   };
 
@@ -228,9 +237,47 @@ export default function GuessingGame({
     setTimeout(() => setIsAnswerCoolingDown(false), 4000);
   };
 
+  // Control bar JSX, reused for both mobile and desktop via portal
+  const controlBar = (
+    <div
+      className={clsx(
+        "w-full flex justify-center z-20",
+        // On mobile (no portal) it stays fixed at the bottom
+        !portalContainer && "fixed bottom-10",
+      )}
+    >
+      <div className="flex bg-gray-700 rounded-full p-1">
+        <Button
+          onClick={handlePauseToggle}
+          disabled={isLoading || !deviceId}
+          className={clsx(
+            "w-20 h-20 rounded-full flex items-center justify-center transition disabled:opacity-50 disabled:cursor-not-allowed",
+            isPaused ? "bg-indigo-400 animate-pulse" : "bg-pink-400",
+          )}
+        >
+          <Image
+            src={isPaused ? playbutton : pause}
+            width={42}
+            height={42}
+            alt="Toggle Playback"
+          />
+        </Button>
+
+        <Button
+          onClick={handleReplay}
+          disabled={isLoading || !deviceId}
+          className="w-20 h-20 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <Image src={playagain} width={42} height={42} alt="Replay Track" />
+        </Button>
+      </div>
+    </div>
+  );
+
   return (
-    <>
-      <div className="bg-gray-800 text-white flex flex-col items-center gap-4 p-4 rounded-lg w-[90%] min-w-[340px] self-center">
+    <div className="flex flex-col w-full md:h-full">
+      {/* Game card */}
+      <div className="bg-gray-800 text-white flex flex-col items-center gap-4 p-4 rounded-lg w-[90%] min-w-[340px] self-center flex-1 overflow-y-auto">
         <h2 className="text-xl font-bold bg-gradient-to-t from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
           {gamemode === "classic" ? playlistName || "Playlist" : "Duo Mode"}
         </h2>
@@ -268,7 +315,7 @@ export default function GuessingGame({
               <img
                 src={currentTrack.image}
                 alt={currentTrack.name}
-                className="w-full rounded-lg"
+                className="w-full rounded-lg max-h-[40vh] object-contain"
               />
             )}
           </div>
@@ -316,33 +363,8 @@ export default function GuessingGame({
         )}
       </div>
 
-      <div className="fixed bottom-10 w-full flex justify-center">
-        <div className="flex bg-gray-800 rounded-full p-1">
-          <Button
-            onClick={handlePauseToggle}
-            disabled={isLoading || !deviceId}
-            className={clsx(
-              "w-20 h-20 rounded-full flex items-center justify-center transition disabled:opacity-50 disabled:cursor-not-allowed",
-              isPaused ? "bg-indigo-400 animate-pulse" : "bg-pink-400",
-            )}
-          >
-            <Image
-              src={isPaused ? playbutton : pause}
-              width={42}
-              height={42}
-              alt="Toggle Playback"
-            />
-          </Button>
-
-          <Button
-            onClick={handleReplay}
-            disabled={isLoading || !deviceId}
-            className="w-20 h-20 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Image src={playagain} width={42} height={42} alt="Replay Track" />
-          </Button>
-        </div>
-      </div>
-    </>
+      {/* Control bar – mobile: fixed at bottom, desktop: portaled into scoreboard column */}
+      {portalContainer ? createPortal(controlBar, portalContainer) : controlBar}
+    </div>
   );
 }

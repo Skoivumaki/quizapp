@@ -231,7 +231,7 @@ export default async function PlayerPage() {
             className="w-full p-4 rounded"
           >
             <h1>{"PROFILE INFO"}</h1>
-            <UserProfile accessToken={accessToken} />
+            <UserProfile />
           </Container>
         </div>
       </div>

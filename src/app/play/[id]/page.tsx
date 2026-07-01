@@ -264,107 +264,190 @@ export default function PlayPage() {
     <>
       <NavBar variant="game" />
 
-      <div
-        className="pt-10"
-        style={{
-          position: "relative",
-          height: "80vh",
-          maxHeight: "80vh",
-          overflow: "clip",
-          backgroundImage: trackImage ? `url(${trackImage})` : undefined,
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-          backgroundSize: "cover",
-          filter: "blur(8px)",
-        }}
-      />
+      {/* ---------- MOBILE LAYOUT (unchanged) ---------- */}
+      <div className="md:hidden">
+        <div
+          className="pt-10"
+          style={{
+            position: "relative",
+            height: "80vh",
+            maxHeight: "80vh",
+            overflow: "clip",
+            backgroundImage: trackImage ? `url(${trackImage})` : undefined,
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+            backgroundSize: "cover",
+            filter: "blur(8px)",
+          }}
+        />
 
-      <div
-        className="py-2 gap-2 mt-12"
-        style={{
-          position: "absolute",
-          color: "white",
-          textAlign: "center",
-          display: "flex",
-          flexDirection: "column",
-          height: "90vh",
-          maxHeight: "90vh",
-          overflow: "clip",
-          width: "100%",
-          top: 0,
-        }}
-      >
-        <button onClick={() => setShowDebugInfo((prev) => !prev)}>
-          Toggle Debug Info
-        </button>
+        <div
+          className="py-2 gap-2 mt-12"
+          style={{
+            position: "absolute",
+            color: "white",
+            textAlign: "center",
+            display: "flex",
+            flexDirection: "column",
+            height: "90vh",
+            maxHeight: "90vh",
+            overflow: "clip",
+            width: "100%",
+            top: 0,
+          }}
+        >
+          <button onClick={() => setShowDebugInfo((prev) => !prev)}>
+            Toggle Debug Info
+          </button>
 
-        {showDebugInfo && (
-          <>
-            {internalPlayer && (
-              <div className="mb-2 text-green-400">
-                Internal Spotify Player Enabled{" "}
-                {spotifyDeviceId
-                  ? `(Device: ${spotifyDeviceId})`
-                  : "(initializing…)"}
-              </div>
-            )}
+          {showDebugInfo && (
+            <>
+              {internalPlayer && (
+                <div className="mb-2 text-green-400">
+                  Internal Spotify Player Enabled{" "}
+                  {spotifyDeviceId
+                    ? `(Device: ${spotifyDeviceId})`
+                    : "(initializing…)"}
+                </div>
+              )}
 
-            <p>
-              Playlist loaded with <strong>{formattedTracks.length}</strong>{" "}
-              tracks. Limit: <strong>{limitParam}</strong> | Seek Start:{" "}
-              <strong>{seekParam}ms </strong> | Status: {gameStatus}
-              {showScoreboard && <span> | Scoreboard: Shown </span>}
-            </p>
-          </>
-        )}
+              <p>
+                Playlist loaded with <strong>{formattedTracks.length}</strong>{" "}
+                tracks. Limit: <strong>{limitParam}</strong> | Seek Start:{" "}
+                <strong>{seekParam}ms </strong> | Status: {gameStatus}
+                {showScoreboard && <span> | Scoreboard: Shown </span>}
+              </p>
+            </>
+          )}
 
-        {spotifyPlayer && !spotifyDeviceId ? (
-          <Button
-            theme={ButtonTheme.PRIMARY}
-            size={ButtonSize.L}
-            onClick={handleStartPlayback}
+          {spotifyPlayer && !spotifyDeviceId ? (
+            <Button
+              theme={ButtonTheme.PRIMARY}
+              size={ButtonSize.L}
+              onClick={handleStartPlayback}
+            >
+              Connect Spotify Player
+            </Button>
+          ) : (
+            <GuessingGame
+              tracks={formattedTracks}
+              playlistName={data?.name}
+              accessToken={accessToken}
+              onStatusChange={setGameStatus}
+              seek={seekParam}
+              random={isRandom}
+              deviceId={spotifyDeviceId}
+              gamemode={gamemodeParam}
+              onShowAnswer={handleShowAnswer}
+              recreatePlayer={recreatePlayer}
+            />
+          )}
+        </div>
+
+        {!scoreboardVisible && (
+          <button
+            onClick={() => setShowScoreboard((prev) => !prev)}
+            title={showScoreboard ? "Hide Scoreboard" : "Show Scoreboard"}
+            className="text-gray-400 text-sm hover:text-white transition-colors w-full text-center p-2 bottom-0 fixed bg-gray-800 rounded-lg"
           >
-            Connect Spotify Player
-          </Button>
-        ) : (
-          <GuessingGame
-            tracks={formattedTracks}
-            playlistName={data?.name}
-            accessToken={accessToken}
-            onStatusChange={setGameStatus}
-            seek={seekParam}
-            random={isRandom}
-            deviceId={spotifyDeviceId}
-            gamemode={gamemodeParam}
-            onShowAnswer={handleShowAnswer}
-            recreatePlayer={recreatePlayer}
-          />
+            Show Scoreboard
+          </button>
         )}
+
+        <div
+          className={`flex flex-col items-center gap-4 transition-all duration-300 ease-in-out w-full fixed bottom-0 mb-2 overflow-hidden z-21 ${
+            scoreboardVisible || showScoreboard
+              ? "translate-y-0 opacity-100"
+              : "translate-y-full opacity-100"
+          }`}
+        >
+          <Scoreboard
+            canScore={canScore}
+            onConsumeScore={handleConsumeScore}
+            isVisible={scoreboardVisible}
+            onToggleVisibility={() => setShowScoreboard((v) => !v)}
+          />
+        </div>
       </div>
 
-      {!scoreboardVisible && (
-        <button
-          onClick={() => setShowScoreboard((prev) => !prev)}
-          title={showScoreboard ? "Hide Scoreboard" : "Show Scoreboard"}
-          className="text-gray-400 text-sm hover:text-white transition-colors w-full text-center p-2 bottom-0 fixed bg-gray-800 rounded-lg"
-        >
-          Show Scoreboard
-        </button>
-      )}
-
-      <div
-        className={`flex flex-col items-center gap-4 transition-all duration-300 ease-in-out w-full fixed bottom-0 mb-2 overflow-hidden ${
-          scoreboardVisible || showScoreboard
-            ? "translate-y-0 opacity-100"
-            : "translate-y-full opacity-100"
-        }`}
-      >
-        <Scoreboard
-          canScore={canScore}
-          onConsumeScore={handleConsumeScore}
-          isVisible={scoreboardVisible}
-          onToggleVisibility={() => setShowScoreboard((v) => !v)}
+      {/* ---------- TABLET & DESKTOP LAYOUT ---------- */}
+      <div className="hidden md:flex flex-col min-h-screen">
+        {/* Fixed blurred background image */}
+        <div
+          className="fixed inset-0 -z-10 bg-cover bg-center filter blur-2xl"
+          style={{
+            backgroundImage: trackImage ? `url(${trackImage})` : undefined,
+            backgroundColor: trackImage ? undefined : "#1a1a2e",
+          }}
         />
+
+        <div className="flex-1 flex flex-row max-h-screen overflow-hidden">
+          {/* ---- Left column: Guessing Game ---- */}
+          <div className="flex-1 p-4 flex flex-col items-center overflow-hidden">
+            <div className="flex-1 w-full overflow-y-auto max-h-[calc(100vh-5rem)]">
+              {/* Optional debug toggle for tablet */}
+              <div className="text-center mb-2">
+                <button onClick={() => setShowDebugInfo((prev) => !prev)}>
+                  Toggle Debug Info
+                </button>
+                {showDebugInfo && (
+                  <div className="text-white text-sm mt-1">
+                    {internalPlayer && (
+                      <p className="text-green-400">
+                        Internal Spotify Player Enabled{" "}
+                        {spotifyDeviceId
+                          ? `(Device: ${spotifyDeviceId})`
+                          : "(initializing…)"}
+                      </p>
+                    )}
+                    <p>
+                      Playlist loaded with{" "}
+                      <strong>{formattedTracks.length}</strong> tracks. Limit:{" "}
+                      <strong>{limitParam}</strong> | Seek Start:{" "}
+                      <strong>{seekParam}ms</strong>
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {spotifyPlayer && !spotifyDeviceId ? (
+                <Button
+                  theme={ButtonTheme.PRIMARY}
+                  size={ButtonSize.L}
+                  onClick={handleStartPlayback}
+                >
+                  Connect Spotify Player
+                </Button>
+              ) : (
+                <GuessingGame
+                  tracks={formattedTracks}
+                  playlistName={data?.name}
+                  accessToken={accessToken}
+                  onStatusChange={setGameStatus}
+                  seek={seekParam}
+                  random={isRandom}
+                  deviceId={spotifyDeviceId}
+                  gamemode={gamemodeParam}
+                  onShowAnswer={handleShowAnswer}
+                  recreatePlayer={recreatePlayer}
+                />
+              )}
+            </div>
+          </div>
+
+          {/* ---- Right column: Scoreboard ---- */}
+          <div className="w-100 p-4 m-8 flex flex-col overflow-hidden">
+            <div className="flex-1 overflow-y-auto">
+              <Scoreboard
+                canScore={canScore}
+                onConsumeScore={handleConsumeScore}
+                isVisible={true}
+                showHideButton={false}
+                onToggleVisibility={() => {}}
+              />
+            </div>
+          </div>
+        </div>
       </div>
     </>
   );

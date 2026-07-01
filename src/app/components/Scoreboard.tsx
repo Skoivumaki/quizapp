@@ -12,6 +12,7 @@ interface ScoreboardProps {
   onConsumeScore: () => void;
   onToggleVisibility: () => void;
   isVisible?: boolean;
+  showHideButton?: boolean; // defaults to true
 }
 
 export default function Scoreboard({
@@ -19,6 +20,7 @@ export default function Scoreboard({
   onConsumeScore,
   onToggleVisibility,
   isVisible,
+  showHideButton = true,
 }: ScoreboardProps) {
   const [players, setPlayers] = useState<Player[]>([]);
   const [newPlayer, setNewPlayer] = useState("");
@@ -133,19 +135,21 @@ export default function Scoreboard({
   };
 
   return (
-    <div className="flex flex-col items-center bg-gray-800 rounded-lg p-4 text-white w-[90%] min-w-[340px]">
+    <div className="flex flex-col items-center bg-gray-800 rounded-lg p-4 text-white w-[90%] min-w-[340px] md:w-full">
       <div className="w-full flex justify-between items-center mb-2 text-center">
         <h3 className="m-0 text-lg font-semibold w-full text-left">
           Scoreboard
         </h3>
 
-        <button
-          onClick={onToggleVisibility}
-          title={isVisible ? "Hide Scoreboard" : "Show Scoreboard"}
-          className="text-gray-400 text-sm hover:text-white transition-colors w-full text-center"
-        >
-          Hide
-        </button>
+        {showHideButton && (
+          <button
+            onClick={onToggleVisibility}
+            title={isVisible ? "Hide Scoreboard" : "Show Scoreboard"}
+            className="text-gray-400 text-sm hover:text-white transition-colors w-full text-center"
+          >
+            Hide
+          </button>
+        )}
 
         <button
           onClick={() => setShowSettings((s) => !s)}

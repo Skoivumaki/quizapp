@@ -94,157 +94,201 @@ export default function PlayerPage() {
       (selectedPlaylistId2 ? `&playlist2=${selectedPlaylistId2}` : "")
     : "#";
 
+  const hasSelection = selectedPlaylistId !== null;
+
+  // Shared playlist selection component
+  const DuoPlaylistSelection = (
+    <Container
+      direction="col"
+      justify="between"
+      align="center"
+      gap="4"
+      className="w-full p-4 rounded"
+    >
+      <SwitchBox
+        theme={ButtonTheme.PRIMARY}
+        options={[
+          { label: "My Playlists", value: "myPlaylist2" },
+          { label: "Search Playlists", value: "searchPlaylist2" },
+        ]}
+        onChange={(val) =>
+          setPlaylistSource2(val as "myPlaylist2" | "searchPlaylist2")
+        }
+        currentValue={playlistSource2}
+      />
+      {playlistSource2 === "myPlaylist2" ? (
+        <Playlists onSelect={handlePlaylistSelect2} />
+      ) : (
+        <SearchPlaylist onSelect={handlePlaylistSelect2} />
+      )}
+      {manualMode2 ? (
+        <ManualPlaylist onSelect={handlePlaylistSelect2} />
+      ) : (
+        <button onClick={() => setManualMode2(true)}>
+          <small className="underline">
+            {"Can't find what you are looking for? Try manual entry."}
+          </small>
+        </button>
+      )}
+    </Container>
+  );
+
+  const MainPlaylistSelection = (
+    <Container
+      direction="col"
+      justify="between"
+      align="center"
+      gap="4"
+      className="w-full p-4 rounded"
+    >
+      <SwitchBox
+        theme={ButtonTheme.PRIMARY}
+        options={[
+          { label: "My Playlists", value: "myPlaylist" },
+          { label: "Search Playlists", value: "searchPlaylist" },
+        ]}
+        onChange={(val) =>
+          setPlaylistSource(val as "myPlaylist" | "searchPlaylist")
+        }
+        currentValue={playlistSource}
+      />
+      {playlistSource === "myPlaylist" ? (
+        <Playlists onSelect={handlePlaylistSelect} />
+      ) : (
+        <SearchPlaylist onSelect={handlePlaylistSelect} />
+      )}
+      {manualMode ? (
+        <ManualPlaylist onSelect={handlePlaylistSelect} />
+      ) : (
+        <button onClick={() => setManualMode(true)}>
+          <small className="underline">
+            {"Can't find what you are looking for? Try manual entry."}
+          </small>
+        </button>
+      )}
+    </Container>
+  );
+
   return (
     <>
       <NavBar variant="play" />
-      <div className="w-screen p-4 mt-8 flex flex-col items-center gap-4">
+      <div className="w-full max-w-7xl mx-auto p-4 mt-8 flex flex-col items-center gap-4">
         <GamemodeSelector value={gamemode} onChange={setGamemode} />
 
-        {gamemode === "duo" && (
-          <Container
-            direction="col"
-            justify="between"
-            align="center"
-            gap="4"
-            className="w-full p-4 rounded"
+        <div className="flex flex-col md:flex-row gap-6 w-full transition-all duration-700 ease-in-out">
+          {/* LEFT COLUMN – Playlist selection(s) */}
+          <div
+            className={`flex flex-col gap-4 transition-all duration-700 ease-in-out ${
+              hasSelection
+                ? "w-full md:w-2/5 lg:w-1/3"
+                : "w-full md:w-full lg:w-full"
+            }`}
           >
-            <>
-              <SwitchBox
-                theme={ButtonTheme.PRIMARY}
-                options={[
-                  { label: "My Playlists", value: "myPlaylist2" },
-                  { label: "Search Playlists", value: "searchPlaylist2" },
-                ]}
-                onChange={(val) =>
-                  setPlaylistSource2(val as "myPlaylist2" | "searchPlaylist2")
-                }
-                currentValue={playlistSource2}
-              />
-              {playlistSource2 === "myPlaylist2" ? (
-                <Playlists onSelect={handlePlaylistSelect2} />
-              ) : (
-                <SearchPlaylist onSelect={handlePlaylistSelect2} />
-              )}
-              {manualMode ? (
-                <ManualPlaylist onSelect={handlePlaylistSelect2} />
-              ) : (
-                <button onClick={() => setManualMode2(true)}>
-                  <small className="underline">
-                    {"Can't find what you are looking for? Try manual entry."}
-                  </small>
-                </button>
-              )}
-            </>
-          </Container>
-        )}
-
-        {/* FIRST PLAYER PLAYLIST SELECTION */}
-        <Container
-          direction="col"
-          justify="between"
-          align="center"
-          gap="4"
-          className="w-full p-4 rounded"
-        >
-          <>
-            <SwitchBox
-              theme={ButtonTheme.PRIMARY}
-              options={[
-                { label: "My Playlists", value: "myPlaylist" },
-                { label: "Search Playlists", value: "searchPlaylist" },
-              ]}
-              onChange={(val) =>
-                setPlaylistSource(val as "myPlaylist" | "searchPlaylist")
-              }
-              currentValue={playlistSource}
-            />
-            {playlistSource === "myPlaylist" ? (
-              <Playlists onSelect={handlePlaylistSelect} />
-            ) : (
-              <SearchPlaylist onSelect={handlePlaylistSelect} />
+            {gamemode === "duo" && (
+              <div className="transition-all duration-700 ease-in-out">
+                {DuoPlaylistSelection}
+              </div>
             )}
-            {manualMode ? (
-              <ManualPlaylist onSelect={handlePlaylistSelect} />
-            ) : (
-              <button onClick={() => setManualMode(true)}>
-                <small className="underline">
-                  {"Can't find what you are looking for? Try manual entry."}
-                </small>
-              </button>
+            <div className="transition-all duration-700 ease-in-out">
+              {MainPlaylistSelection}
+            </div>
+          </div>
+
+          {/* RIGHT COLUMN – Overview & Game Settings */}
+          <div
+            className={`flex flex-col gap-4 transition-all duration-700 ease-in-out overflow-hidden ${
+              hasSelection
+                ? "w-full md:w-3/5 lg:w-2/3 opacity-100 max-h-[2000px] translate-x-0"
+                : "w-0 md:w-0 lg:w-0 opacity-0 max-h-0 translate-x-8"
+            }`}
+          >
+            {/* Duo playlist info (if selected) */}
+            {selectedPlaylistId2 && (
+              <div className="transition-all duration-500 ease-in-out delay-200">
+                <h2 className="text-center font-bold text-2xl">
+                  Blending {selectedPlaylistName2}
+                </h2>
+                <Container
+                  direction="col"
+                  justify="between"
+                  align="center"
+                  gap="4"
+                  className="w-full p-4 rounded"
+                >
+                  <SelectedPlaylistInfo
+                    playlistId={selectedPlaylistId2}
+                    playlistName={selectedPlaylistName2}
+                    owner={selectedPlaylistOwner2}
+                    description={selectedPlaylistDescription2}
+                    totalTracks={selectedPlaylistTotalTracks2}
+                    imageUrl={selectedPlaylistImageUrl2}
+                  />
+                </Container>
+              </div>
             )}
-          </>
-        </Container>
 
-        {selectedPlaylistId2 && (
-          <>
-            <h1 className="text-center font-bold text-2xl">
-              Blending {selectedPlaylistName2}
-            </h1>
-            <Container
-              direction="col"
-              justify="between"
-              align="center"
-              gap="4"
-              className="w-full p-4 rounded"
-            >
-              <SelectedPlaylistInfo
-                playlistId={selectedPlaylistId2}
-                playlistName={selectedPlaylistName2}
-                owner={selectedPlaylistOwner2}
-                description={selectedPlaylistDescription2}
-                totalTracks={selectedPlaylistTotalTracks2}
-                imageUrl={selectedPlaylistImageUrl2}
-              />
-            </Container>
-          </>
-        )}
+            {selectedPlaylistId && (
+              <>
+                {/* Main playlist overview */}
+                <div className="transition-all duration-500 ease-in-out delay-100">
+                  <h2 className="text-center font-bold text-2xl">Overview</h2>
+                  <Container
+                    direction="col"
+                    justify="between"
+                    align="center"
+                    gap="4"
+                    className="w-full p-4 rounded"
+                  >
+                    <SelectedPlaylistInfo
+                      playlistId={selectedPlaylistId}
+                      playlistName={selectedPlaylistName}
+                      owner={selectedPlaylistOwner}
+                      description={selectedPlaylistDescription}
+                      totalTracks={selectedPlaylistTotalTracks}
+                      imageUrl={selectedPlaylistImageUrl}
+                    />
+                    <Button theme={ButtonTheme.PRIMARY} size={ButtonSize.XL}>
+                      <Link href={playHref}>Start Game</Link>
+                    </Button>
+                  </Container>
+                </div>
 
-        {selectedPlaylistId ? (
-          <>
-            <h1 className="text-center font-bold text-2xl">Game Settings</h1>
-            <Container
-              direction="col"
-              justify="between"
-              align="center"
-              gap="4"
-              className="w-full p-4 rounded"
-            >
-              <GameSettings
-                limit={limit}
-                setLimit={setLimit}
-                seek={seek}
-                setSeek={setSeek}
-                setLength={setLength}
-                length={length}
-                random={random}
-                setRandom={setRandom}
-                internalPlayer={internalPlayer}
-                setInternalPlayer={setInternalPlayer}
-              />
-            </Container>
-            <h1 className="text-center font-bold text-2xl">Overview</h1>
-            <Container
-              direction="col"
-              justify="between"
-              align="center"
-              gap="4"
-              className="w-full p-4 rounded"
-            >
-              <SelectedPlaylistInfo
-                playlistId={selectedPlaylistId}
-                playlistName={selectedPlaylistName}
-                owner={selectedPlaylistOwner}
-                description={selectedPlaylistDescription}
-                totalTracks={selectedPlaylistTotalTracks}
-                imageUrl={selectedPlaylistImageUrl}
-              />
-              <Button theme={ButtonTheme.PRIMARY} size={ButtonSize.XL}>
-                <Link href={playHref}>Start Game</Link>
-              </Button>
-            </Container>
-          </>
-        ) : (
-          <p className="text-purple-400">No Playlist Selected</p>
+                {/* Game Settings under the overview */}
+                <div className="transition-all duration-500 ease-in-out delay-300">
+                  <h2 className="text-center font-bold text-2xl">
+                    Game Settings
+                  </h2>
+                  <Container
+                    direction="col"
+                    justify="between"
+                    align="center"
+                    gap="4"
+                    className="w-full p-4 rounded"
+                  >
+                    <GameSettings
+                      limit={limit}
+                      setLimit={setLimit}
+                      seek={seek}
+                      setSeek={setSeek}
+                      setLength={setLength}
+                      length={length}
+                      random={random}
+                      setRandom={setRandom}
+                      internalPlayer={internalPlayer}
+                      setInternalPlayer={setInternalPlayer}
+                    />
+                  </Container>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* No selection message – only visible on mobile when nothing is selected */}
+        {!hasSelection && (
+          <div className="md:hidden flex items-center justify-center">
+            <p className="text-purple-400">No Playlist Selected</p>
+          </div>
         )}
       </div>
     </>
