@@ -1,0 +1,29 @@
+services:
+  quizapp-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: quizapp-dev
+    restart: unless-stopped
+    ports:
+      - "2999:2999"
+    volumes:
+      # Mount the current directory for hot reload
+      - .:/app
+      # Don't override node_modules
+      - /app/node_modules
+      # Don't override .next
+      - /app/.next
+    environment:
+      - NODE_ENV=development
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+    env_file:
+      - .env.local
+    networks:
+      - proxy-network
+
+networks:
+  proxy-network:
+    external: true
+    name: proxy-network

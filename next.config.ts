@@ -1,14 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "standalone",
-
+  // Enable standalone output
+  //output: "standalone",
+  
   basePath: "/quiz",
-
+  
   typescript: {
     ignoreBuildErrors: true,
   },
-
+  
   images: {
     remotePatterns: [
       {
@@ -20,6 +21,13 @@ const nextConfig: NextConfig = {
         hostname: "**.scdn.co",
       },
     ],
+  },
+  
+  // Add experimental config for server actions
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '2mb',
+    },
   },
 };
 
