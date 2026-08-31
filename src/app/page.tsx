@@ -2,15 +2,11 @@ import Link from "next/link";
 import { Button, ButtonTheme, ButtonSize } from "./components/Button";
 import { Container } from "./components/Container";
 import UserProfile from "./components/UserProfile";
-import { cookies } from "next/headers";
 import NavBar from "./components/NavBar";
 import viewImage from "@/shared/assets/images/view.png";
 import Image from "next/image";
 
 export default async function PlayerPage() {
-  const cookieStore = await cookies();
-  const accessToken = cookieStore.get("spotify_access_token")?.value;
-
   return (
     <>
       <div
@@ -19,10 +15,10 @@ export default async function PlayerPage() {
         }}
       >
         <NavBar />
-        <div className="bg-gradient-to-t from-gray-950 via-gray-800 to-gray-950 flex flex-col md:flex-row items-center justify-between px-6 md:px-12 py-16 mt-5 relative overflow-hidden">
+        <div className="bg-linear-to-t from-gray-950 via-gray-800 to-gray-950 flex flex-col md:flex-row items-center justify-between px-6 md:px-12 py-16 mt-5 relative overflow-hidden">
           {/* LEFT TEXT CONTENT */}
           <div className="max-w-lg z-10">
-            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <h1 className="text-3xl md:text-4xl font-bold bg-linear-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
               Make your music more fun with Quiz App
             </h1>
 
@@ -35,7 +31,7 @@ export default async function PlayerPage() {
           {/* RIGHT IMAGE SHOWCASE */}
           <div className="relative mt-12 md:mt-0 md:ml-10 flex items-center justify-center">
             {/* Back Layer 2 (most faded) */}
-            <div className="absolute rotate-[14deg] translate-x-6 translate-y-6 opacity-10 scale-95">
+            <div className="absolute rotate-14 translate-x-6 translate-y-6 opacity-10 scale-95">
               <Image
                 src={viewImage}
                 alt="App preview background layer"
@@ -45,7 +41,7 @@ export default async function PlayerPage() {
             </div>
 
             {/* Back Layer 1 */}
-            <div className="absolute rotate-[10deg] translate-x-3 translate-y-3 opacity-20 scale-97">
+            <div className="absolute rotate-10 translate-x-3 translate-y-3 opacity-20 scale-97">
               <Image
                 src={viewImage}
                 alt="App preview background layer"
@@ -55,7 +51,7 @@ export default async function PlayerPage() {
             </div>
 
             {/* Main Front Image */}
-            <div className="relative rotate-[6deg] shadow-2xl shadow-purple-900/40 transition-transform duration-500 hover:rotate-[2deg]">
+            <div className="relative rotate-6 shadow-2xl shadow-purple-900/40 transition-transform duration-500 hover:rotate-2">
               <Image
                 src={viewImage}
                 alt="Quiz App preview"
@@ -85,7 +81,7 @@ export default async function PlayerPage() {
             <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Feature 1 */}
               <div className="bg-gray-900 rounded-xl p-5 border border-gray-800 hover:border-indigo-400 transition-all duration-300">
-                <h3 className="text-lg font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                <h3 className="text-lg font-bold bg-linear-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
                   Playlist Powered
                 </h3>
                 <p className="text-gray-300 text-sm mt-2">
@@ -96,7 +92,7 @@ export default async function PlayerPage() {
 
               {/* Feature 2 */}
               <div className="bg-gray-900 rounded-xl p-5 border border-gray-800 hover:border-purple-400 transition-all duration-300">
-                <h3 className="text-lg font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                <h3 className="text-lg font-bold bg-linear-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
                   Multiple Game Modes
                 </h3>
                 <p className="text-gray-300 text-sm mt-2">
@@ -107,7 +103,7 @@ export default async function PlayerPage() {
 
               {/* Feature 4 */}
               <div className="bg-gray-900 rounded-xl p-5 border border-gray-800 hover:border-indigo-400 transition-all duration-300">
-                <h3 className="text-lg font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                <h3 className="text-lg font-bold bg-linear-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
                   Competitive Scoring
                 </h3>
                 <p className="text-gray-300 text-sm mt-2">
@@ -118,7 +114,7 @@ export default async function PlayerPage() {
 
               {/* Feature 5 */}
               <div className="bg-gray-900 rounded-xl p-5 border border-gray-800 hover:border-purple-400 transition-all duration-300">
-                <h3 className="text-lg font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                <h3 className="text-lg font-bold bg-linear-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
                   Customizable Experience
                 </h3>
                 <p className="text-gray-300 text-sm mt-2">
@@ -129,7 +125,7 @@ export default async function PlayerPage() {
 
               {/* Feature 6 */}
               <div className="bg-gray-900 rounded-xl p-5 border border-gray-800 hover:border-pink-400 transition-all duration-300">
-                <h3 className="text-lg font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                <h3 className="text-lg font-bold bg-linear-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
                   Built for Friends
                 </h3>
                 <p className="text-gray-300 text-sm mt-2">
@@ -144,10 +140,10 @@ export default async function PlayerPage() {
             justify="center"
             align="center"
             gap="4"
-            className="w-full p-8 rounded-2xl bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border border-gray-800 shadow-lg"
+            className="w-full p-8 rounded-2xl bg-linear-to-br from-gray-900 via-gray-800 to-gray-900 border border-gray-800 shadow-lg"
           >
             <div className="text-center max-w-xl">
-              <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+              <h2 className="text-2xl md:text-3xl font-bold bg-linear-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
                 Ready to Test Your Music Knowledge?
               </h2>
 
@@ -174,10 +170,10 @@ export default async function PlayerPage() {
             justify="center"
             align="center"
             gap="6"
-            className="w-full p-10 rounded-2xl bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border border-gray-800 shadow-lg"
+            className="w-full p-10 rounded-2xl bg-linear-to-br from-gray-900 via-gray-800 to-gray-900 border border-gray-800 shadow-lg"
           >
             <div className="text-center max-w-md">
-              <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+              <h2 className="text-2xl md:text-3xl font-bold bg-linear-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
                 Quiz App Pro
               </h2>
 
@@ -205,7 +201,7 @@ export default async function PlayerPage() {
 
               {/* CTA */}
               <div className="mt-8">
-                <div className="p-[2px] rounded-xl bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">
+                <div className="p-0.5 rounded-xl bg-linear-to-r from-indigo-400 via-purple-400 to-pink-400">
                   <Button
                     theme={ButtonTheme.PRIMARY}
                     size={ButtonSize.XL}
@@ -228,10 +224,10 @@ export default async function PlayerPage() {
             justify="center"
             align="center"
             gap="6"
-            className="w-full p-10 rounded-2xl border border-gray-800 shadow-lg bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900"
+            className="w-full p-10 rounded-2xl border border-gray-800 shadow-lg bg-linear-to-br from-gray-900 via-gray-800 to-gray-900"
           >
             <div className="text-center max-w-xl">
-              <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+              <h2 className="text-2xl md:text-3xl font-bold bg-linear-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
                 Going Public
               </h2>
 
@@ -243,7 +239,7 @@ export default async function PlayerPage() {
               </p>
 
               <p className="text-gray-400 mt-3 text-sm md:text-base leading-relaxed">
-                Instead of abandoning the project, I'm{" "}
+                Instead of abandoning the project, I&apos;m{" "}
                 <strong>releasing the entire codebase</strong>. Anyone can now
                 fork, maintain, improve, and adapt this project for personal and
                 hobby use.

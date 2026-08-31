@@ -8,7 +8,7 @@ export default function LoginPrompt() {
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 animate-fade-in">
+    <div className="fixed inset-0 z-9999 flex items-center justify-center bg-black/70 animate-fade-in">
       <div className="bg-gray-800 p-8 rounded-xl text-center text-white shadow-lg w-11/12 max-w-md">
         <h2 className="mb-4 text-2xl font-semibold">Spotify Login Required</h2>
         <p className="mb-6 text-gray-300">

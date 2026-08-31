@@ -119,6 +119,25 @@ export default function PlayPage() {
     (state: RootState) => state.settings.autoShowScoreboard,
   );
 
+  // Clear old game state if switching to a different playlist
+  useEffect(() => {
+    const savedState = loadGameState();
+
+    if (savedState) {
+      const isDifferentPlaylist =
+        savedState.playlistId !== playlistId ||
+        savedState.playlistId2 !== (selectedPlaylistId2 || undefined);
+
+      if (isDifferentPlaylist) {
+        console.log("Detected playlist change, clearing old game state");
+        clearSavedGameState();
+        setResumableGameState(null);
+        setShowResumePrompt(false);
+        setResumeChoice(null);
+      }
+    }
+  }, [playlistId, selectedPlaylistId2]);
+
   // Check for resumable game on mount
   useEffect(() => {
     if (typeof window === "undefined") return;

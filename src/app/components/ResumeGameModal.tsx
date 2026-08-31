@@ -1,7 +1,7 @@
 // components/ResumeGameModal.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button, ButtonSize, ButtonTheme } from "./Button";
 import { GameState } from "@/hooks/useGameState";
 

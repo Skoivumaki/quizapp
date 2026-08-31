@@ -1,7 +1,13 @@
 // components/GuessingGame.tsx
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useMemo as useMemoHook,
+} from "react";
 import { createPortal } from "react-dom";
 import {
   usePausePlaybackMutation,
@@ -59,19 +65,34 @@ export default function GuessingGame({
   gamemode = "classic",
   resumedState,
 }: GuessingGameProps) {
-  // Initialize game state with either fresh state or resumed state
-  const { gameState, updateGameState, isClient } = useGameState(
-    resumedState || {
+  // Memoize the initial state so it doesn't change on every render
+  const memoizedInitialState = useMemo(
+    () =>
+      resumedState || {
+        playlistId,
+        playlistId2,
+        playlistName: playlistName || "",
+        tracks,
+        currentIndex: 0,
+        seek,
+        random,
+        gamemode: gamemode || "classic",
+      },
+    [
+      resumedState,
       playlistId,
       playlistId2,
-      playlistName: playlistName || "",
+      playlistName,
       tracks,
-      currentIndex: 0,
       seek,
       random,
-      gamemode: gamemode || "classic",
-    },
+      gamemode,
+    ],
   );
+
+  // Initialize game state with either fresh state or resumed state
+  const { gameState, updateGameState, isClient } =
+    useGameState(memoizedInitialState);
 
   // Local UI state that doesn't need persistence
   const [isPaused, setIsPaused] = useState(false);
@@ -200,6 +221,7 @@ export default function GuessingGame({
         }).unwrap();
 
         return true;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         console.error("Playback failed", err);
 
@@ -228,13 +250,6 @@ export default function GuessingGame({
     [deviceId, playTrack],
   );
 
-  const resetTrackState = useCallback(() => {
-    updateGameState({
-      showAnswer: false,
-    });
-    setIsPaused(false);
-  }, [updateGameState]);
-
   const handlePlayFirst = useCallback(async () => {
     if (!currentTrack || !ensureDeviceReady()) return;
 
@@ -260,7 +275,7 @@ export default function GuessingGame({
     if (!success) return;
 
     setIsPaused(false);
-  }, [currentTrack, startPosition, play]);
+  }, [currentTrack, play, startPosition]);
 
   const handleNext = useCallback(async () => {
     if (!ensureDeviceReady()) return;
@@ -415,6 +430,7 @@ export default function GuessingGame({
             )}
 
             {currentTrack.image && (
+              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={currentTrack.image}
                 alt={currentTrack.name}

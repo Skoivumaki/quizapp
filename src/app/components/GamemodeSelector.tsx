@@ -5,11 +5,27 @@ import clsx from "clsx";
 
 type Gamemode = "classic" | "duo";
 
-const MODES: { id: Gamemode; title: string; desc: string }[] = [
-  { id: "classic", title: "Classic", desc: "Solo quiz experience" },
-  { id: "duo", title: "Duo", desc: "Play together with a friend" },
-  { id: "classic", title: "More to come", desc: "Check back later!" },
-];
+const MODES: { id: string; gamemode: Gamemode; title: string; desc: string }[] =
+  [
+    {
+      id: "classic-mode",
+      gamemode: "classic",
+      title: "Classic",
+      desc: "Solo quiz experience",
+    },
+    {
+      id: "duo-mode",
+      gamemode: "duo",
+      title: "Duo",
+      desc: "Play together with a friend",
+    },
+    {
+      id: "coming-soon",
+      gamemode: "classic",
+      title: "More to come",
+      desc: "Check back later!",
+    },
+  ];
 
 export default function GamemodeSelector({
   value,
@@ -21,7 +37,7 @@ export default function GamemodeSelector({
   const containerRef = useRef<HTMLDivElement>(null);
   const autoSnapping = useRef(false);
 
-  const activeIndex = MODES.findIndex((m) => m.id === value);
+  const activeIndex = MODES.findIndex((m) => m.gamemode === value);
 
   useEffect(() => {
     if (!containerRef.current || activeIndex < 0) return;
@@ -55,8 +71,8 @@ export default function GamemodeSelector({
       </h2>
 
       <div className="relative">
-        <div className="pointer-events-none absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-black/60 to-transparent z-5" />
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-black/60 to-transparent z-5" />
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-6 bg-linear-to-r from-black/60 to-transparent z-5" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-6 bg-linear-to-l from-black/60 to-transparent z-5" />
 
         <div
           ref={containerRef}
@@ -71,18 +87,18 @@ export default function GamemodeSelector({
                 className={clsx(
                   "snap-center min-w-[80%] px-3 py-4 flex justify-center",
                   index === 0 && "ml-[20%]",
-                  index === MODES.length - 1 && "mr-[20%]"
+                  index === MODES.length - 1 && "mr-[20%]",
                 )}
               >
                 <button
                   type="button"
-                  onClick={() => onChange(mode.id)}
+                  onClick={() => onChange(mode.gamemode)}
                   className={clsx(
                     "relative w-full rounded-xl p-6 transition-all duration-300",
                     "bg-gray-800 text-white",
                     isActive
                       ? "scale-100 z-5 shadow-xl border border-purple-400"
-                      : "scale-90 opacity-60 z-3"
+                      : "scale-90 opacity-60 z-3",
                   )}
                 >
                   <h3 className="text-xl font-bold mb-2">{mode.title}</h3>
@@ -106,7 +122,7 @@ export default function GamemodeSelector({
             key={i}
             className={clsx(
               "h-2 w-2 rounded-full transition",
-              i === activeIndex ? "bg-purple-500" : "bg-gray-600"
+              i === activeIndex ? "bg-purple-500" : "bg-gray-600",
             )}
           />
         ))}

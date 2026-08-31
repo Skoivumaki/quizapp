@@ -1,8 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Providers, TokenProvider } from "./providers";
-import { cookies } from "next/dist/server/request/cookies";
-import { redirect } from "next/dist/client/components/navigation";
+import { cookies } from "next/headers";
 import "./globals.css";
 import { ToastContainer } from "react-toastify";
 
@@ -16,8 +15,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const baseUrl =
-  process.env.NEXT_PUBLIC_BASE_URL || "http://127.0.0.1:3000/quiz";
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://127.0.0.1:3000/";
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
@@ -64,7 +62,7 @@ export const metadata: Metadata = {
     siteName: "Quiz App",
     images: [
       {
-        url: `${baseUrl}/og/quiz-app-og.png`,
+        url: `${baseUrl}/facicon.png`,
         width: 1200,
         height: 630,
         alt: "Quiz App — Music Guessing Game",
@@ -77,8 +75,8 @@ export const metadata: Metadata = {
     title: "Quiz App — Music Guessing Game",
     description:
       "Guess songs, artists and genres integrated with your Spotify.",
-    creator: "@yourhandle",
-    images: [`${baseUrl}/og/quiz-app-og.png`],
+    creator: "@Skoivumaki",
+    images: [`${baseUrl}/facicon.png`],
   },
   manifest: "/site.webmanifest",
   appleWebApp: {
@@ -106,16 +104,6 @@ export default async function RootLayout({
 }>) {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get("spotify_access_token")?.value;
-  const expiresAtString = cookieStore.get("spotify_token_expires_at")?.value;
-
-  const now = Date.now();
-  const expiresAt = expiresAtString ? Number(expiresAtString) : 0;
-  const isExpired = now > expiresAt;
-
-  // if (isExpired && accessToken) {
-  //   console.log("REFRESH: Expired token and has accessToken");
-  //   redirect("/api/refresh");
-  // }
 
   return (
     <html lang="en">

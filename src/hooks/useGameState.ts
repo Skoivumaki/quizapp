@@ -62,7 +62,7 @@ export function useGameState(initialState?: Partial<GameState>) {
     } else {
       setGameState(createInitialState());
     }
-  }, []);
+  }, [initialState]);
 
   // Sync state to localStorage whenever it changes
   useEffect(() => {
