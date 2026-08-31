@@ -1,3 +1,4 @@
+// play/[id]/page.tsx
 "use client";
 
 import { useParams, useSearchParams } from "next/navigation";
@@ -9,12 +10,18 @@ import { useFormattedTracks } from "@/hooks/useFormatTracks";
 import { useMixedPlaylists } from "@/hooks/useMixedPlaylists";
 import GuessingGame from "@/app/components/GuessingGame";
 import Scoreboard from "@/app/components/Scoreboard";
+import ResumeGameModal from "@/app/components/ResumeGameModal";
 import { Button, ButtonSize, ButtonTheme } from "@/app/components/Button";
 import NavBar from "@/app/components/NavBar";
 import { useLeaveConfirmation } from "@/hooks/useLeaveConfirmation";
 import { useSpotifyWebPlayback } from "@/hooks/useSpotifyWebPlayback";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
+import {
+  loadGameState,
+  clearSavedGameState,
+  type GameState,
+} from "@/hooks/useGameState";
 
 declare global {
   interface Window {
@@ -48,6 +55,14 @@ export default function PlayPage() {
 
   const hasTransferredPlaybackRef = useRef(false);
 
+  // State for resume prompt
+  const [resumableGameState, setResumableGameState] =
+    useState<GameState | null>(null);
+  const [showResumePrompt, setShowResumePrompt] = useState(false);
+  const [resumeChoice, setResumeChoice] = useState<"resume" | "new" | null>(
+    null,
+  );
+
   const singlePlaylistQuery = useGetPlaylistQuery(playlistId as string, {
     skip: !!selectedPlaylistId2 || !playlistId,
   });
@@ -69,14 +84,20 @@ export default function PlayPage() {
     singlePlaylistQuery.data?.tracks?.items ??
     [];
 
-  const singleFormattedTracks = useFormattedTracks(playlistItems, {
-    shuffle: true,
-    limit: limitParam,
-  });
+  // Only format tracks if not resuming
+  const singleFormattedTracks = useFormattedTracks(
+    resumeChoice === "resume" ? [] : playlistItems,
+    {
+      shuffle: true,
+      limit: limitParam,
+    },
+  );
 
   const formattedTracks = isUsingMixed
     ? mixedPlaylistQuery.tracks
-    : singleFormattedTracks;
+    : resumeChoice === "resume"
+      ? resumableGameState?.tracks || []
+      : singleFormattedTracks;
 
   const data = isUsingMixed ? { name: "Duo Mode" } : singlePlaylistQuery.data;
 
@@ -97,6 +118,39 @@ export default function PlayPage() {
   const autoShowScoreboard = useSelector(
     (state: RootState) => state.settings.autoShowScoreboard,
   );
+
+  // Check for resumable game on mount
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    // Only check resume if playlists are fully loaded
+    if (isLoading) return;
+
+    const savedState = loadGameState();
+
+    if (
+      savedState &&
+      !savedState.isFinished &&
+      savedState.playlistId === playlistId &&
+      savedState.playlistId2 === (selectedPlaylistId2 || undefined) &&
+      savedState.tracks.length > 0
+    ) {
+      setResumableGameState(savedState);
+      setShowResumePrompt(true);
+    }
+  }, [isLoading, playlistId, selectedPlaylistId2]);
+
+  const handleResumeGame = () => {
+    setResumeChoice("resume");
+    setShowResumePrompt(false);
+  };
+
+  const handleStartNewGame = () => {
+    clearSavedGameState();
+    setResumeChoice("new");
+    setShowResumePrompt(false);
+    setResumableGameState(null);
+  };
 
   useEffect(() => {
     setCanScore(gameStatus === "answer_shown");
@@ -119,7 +173,7 @@ export default function PlayPage() {
 
     const transferPlayback = async () => {
       try {
-        const response = await fetch("/quiz/api/spotify/me/player", {
+        const response = await fetch("/api/spotify/me/player", {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -260,11 +314,25 @@ export default function PlayPage() {
     );
   }
 
+  // Show resume prompt if state exists and user hasn't made a choice yet
+  if (showResumePrompt && resumableGameState) {
+    return (
+      <>
+        <NavBar variant="game" />
+        <ResumeGameModal
+          gameState={resumableGameState}
+          onResume={handleResumeGame}
+          onStartNew={handleStartNewGame}
+        />
+      </>
+    );
+  }
+
   return (
     <>
       <NavBar variant="game" />
 
-      {/* ---------- MOBILE LAYOUT (unchanged) ---------- */}
+      {/* ---------- MOBILE LAYOUT ---------- */}
       <div className="md:hidden">
         <div
           className="pt-10"
@@ -330,9 +398,10 @@ export default function PlayPage() {
             </Button>
           ) : (
             <GuessingGame
+              playlistId={playlistId}
+              playlistId2={selectedPlaylistId2 || undefined}
               tracks={formattedTracks}
               playlistName={data?.name}
-              accessToken={accessToken}
               onStatusChange={setGameStatus}
               seek={seekParam}
               random={isRandom}
@@ -340,6 +409,9 @@ export default function PlayPage() {
               gamemode={gamemodeParam}
               onShowAnswer={handleShowAnswer}
               recreatePlayer={recreatePlayer}
+              resumedState={
+                resumeChoice === "resume" ? resumableGameState : null
+              }
             />
           )}
         </div>
@@ -420,9 +492,10 @@ export default function PlayPage() {
                 </Button>
               ) : (
                 <GuessingGame
+                  playlistId={playlistId}
+                  playlistId2={selectedPlaylistId2 || undefined}
                   tracks={formattedTracks}
                   playlistName={data?.name}
-                  accessToken={accessToken}
                   onStatusChange={setGameStatus}
                   seek={seekParam}
                   random={isRandom}
@@ -430,6 +503,9 @@ export default function PlayPage() {
                   gamemode={gamemodeParam}
                   onShowAnswer={handleShowAnswer}
                   recreatePlayer={recreatePlayer}
+                  resumedState={
+                    resumeChoice === "resume" ? resumableGameState : null
+                  }
                 />
               )}
             </div>

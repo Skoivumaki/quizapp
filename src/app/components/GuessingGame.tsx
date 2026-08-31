@@ -1,6 +1,7 @@
+// components/GuessingGame.tsx
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { createPortal } from "react-dom";
 import {
   usePausePlaybackMutation,
@@ -17,6 +18,7 @@ import pause from "@/shared/assets/icons/pause.svg";
 import playagain from "@/shared/assets/icons/playagain.svg";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
+import { useGameState, type GameState } from "@/hooks/useGameState";
 
 interface FormattedTrack {
   id: string;
@@ -30,6 +32,8 @@ interface FormattedTrack {
 }
 
 interface GuessingGameProps {
+  playlistId: string;
+  playlistId2?: string;
   playlistName?: string;
   tracks: FormattedTrack[];
   onStatusChange?: (status: string) => void;
@@ -39,9 +43,12 @@ interface GuessingGameProps {
   deviceId?: string | null;
   gamemode?: string | null;
   recreatePlayer?: () => void;
+  resumedState?: GameState | null;
 }
 
 export default function GuessingGame({
+  playlistId,
+  playlistId2,
   playlistName,
   tracks,
   onStatusChange,
@@ -50,18 +57,29 @@ export default function GuessingGame({
   random = false,
   deviceId,
   gamemode = "classic",
+  resumedState,
 }: GuessingGameProps) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [startPosition, setStartPosition] = useState(0);
+  // Initialize game state with either fresh state or resumed state
+  const { gameState, updateGameState, isClient } = useGameState(
+    resumedState || {
+      playlistId,
+      playlistId2,
+      playlistName: playlistName || "",
+      tracks,
+      currentIndex: 0,
+      seek,
+      random,
+      gamemode: gamemode || "classic",
+    },
+  );
 
-  const [hasStarted, setHasStarted] = useState(false);
-  const [isFinished, setIsFinished] = useState(false);
+  // Local UI state that doesn't need persistence
   const [isPaused, setIsPaused] = useState(false);
-  const [showAnswer, setShowAnswer] = useState(false);
   const [isAnswerCoolingDown, setIsAnswerCoolingDown] = useState(false);
   const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(
     null,
   );
+  const [hasResumedPlayback, setHasResumedPlayback] = useState(false);
 
   const [playTrack, { isLoading }] = usePlayTrackMutation();
   const [pausePlayback] = usePausePlaybackMutation();
@@ -71,6 +89,13 @@ export default function GuessingGame({
     (state: RootState) => state.settings.showAddedByInfo,
   );
 
+  // Use persisted game state
+  const currentIndex = gameState?.currentIndex ?? 0;
+  const startPosition = gameState?.startPosition ?? 0;
+  const hasStarted = gameState?.hasStarted ?? false;
+  const showAnswer = gameState?.showAnswer ?? false;
+  const isFinished = gameState?.isFinished ?? false;
+
   const totalTracks = tracks.length;
   const currentTrack = tracks[currentIndex];
 
@@ -79,8 +104,9 @@ export default function GuessingGame({
     return ((currentIndex + 1) / totalTracks) * 100;
   }, [currentIndex, totalTracks]);
 
+  // Update onStatusChange when game state changes
   useEffect(() => {
-    if (!onStatusChange) return;
+    if (!onStatusChange || !isClient) return;
 
     if (isFinished) return onStatusChange("finished");
     if (!hasStarted) return onStatusChange("idle");
@@ -88,13 +114,55 @@ export default function GuessingGame({
     if (isPaused) return onStatusChange("paused");
 
     onStatusChange("playing");
-  }, [hasStarted, showAnswer, isPaused, isFinished, onStatusChange]);
+  }, [hasStarted, showAnswer, isPaused, isFinished, onStatusChange, isClient]);
 
   // Locate the portal container on the desktop layout
   useEffect(() => {
     const container = document.getElementById("playback-controls-container");
     setPortalContainer(container);
   }, []);
+
+  // Auto-play resumed track
+  useEffect(() => {
+    if (
+      !isClient ||
+      !resumedState ||
+      !hasStarted ||
+      !currentTrack ||
+      !deviceId ||
+      hasResumedPlayback
+    ) {
+      return;
+    }
+
+    const autoPlayResumedTrack = async () => {
+      try {
+        await playTrack({
+          id: currentTrack.id,
+          position_ms: startPosition,
+          device_id: deviceId,
+        }).unwrap();
+
+        setHasResumedPlayback(true);
+        console.log(
+          `Auto-played resumed track: ${currentTrack.name} at ${startPosition}ms`,
+        );
+      } catch (err) {
+        console.error("Failed to auto-play resumed track:", err);
+      }
+    };
+
+    autoPlayResumedTrack();
+  }, [
+    isClient,
+    resumedState,
+    hasStarted,
+    currentTrack,
+    deviceId,
+    playTrack,
+    startPosition,
+    hasResumedPlayback,
+  ]);
 
   const ensureDeviceReady = () => {
     if (!deviceId) {
@@ -104,62 +172,70 @@ export default function GuessingGame({
     return true;
   };
 
-  const calculateStartPosition = (duration: number) => {
-    if (!random) return seek;
-    if (duration <= 30000) return 0;
-    return Math.floor(Math.random() * (duration - 30000));
-  };
+  const calculateStartPosition = useCallback(
+    (duration: number) => {
+      if (!random) return seek;
+      if (duration <= 30000) return 0;
+      return Math.floor(Math.random() * (duration - 30000));
+    },
+    [random, seek],
+  );
 
-  const play = async (
-    track: FormattedTrack,
-    position: number,
-    retryCount = 0,
-  ): Promise<boolean> => {
-    if (!deviceId) {
-      toast.warning("Spotify player not ready");
-      return false;
-    }
-
-    try {
-      await playTrack({
-        id: track.id,
-        position_ms: position,
-        device_id: deviceId,
-      }).unwrap();
-
-      return true;
-    } catch (err: any) {
-      console.error("Playback failed", err);
-
-      if (err?.status === 404 && retryCount < 3) {
-        await new Promise((resolve) => setTimeout(resolve, 800));
-        return play(track, position, retryCount + 1);
+  const play = useCallback(
+    async (
+      track: FormattedTrack,
+      position: number,
+      retryCount = 0,
+    ): Promise<boolean> => {
+      if (!deviceId) {
+        toast.warning("Spotify player not ready");
+        return false;
       }
 
-      if (err?.status === 404) {
-        toast.error(
-          "Spotify device was not found. Reconnect the Spotify player.",
-        );
-      } else if (err?.status === 403) {
-        toast.error(
-          "Spotify playback is not allowed. Check Premium/account access.",
-        );
-      } else if (err?.status === 401) {
-        toast.error("Spotify session expired. Please log in again.");
-      } else {
-        toast.error("Playback failed. Is Spotify connected?");
+      try {
+        await playTrack({
+          id: track.id,
+          position_ms: position,
+          device_id: deviceId,
+        }).unwrap();
+
+        return true;
+      } catch (err: any) {
+        console.error("Playback failed", err);
+
+        if (err?.status === 404 && retryCount < 3) {
+          await new Promise((resolve) => setTimeout(resolve, 800));
+          return play(track, position, retryCount + 1);
+        }
+
+        if (err?.status === 404) {
+          toast.error(
+            "Spotify device was not found. Reconnect the Spotify player.",
+          );
+        } else if (err?.status === 403) {
+          toast.error(
+            "Spotify playback is not allowed. Check Premium/account access.",
+          );
+        } else if (err?.status === 401) {
+          toast.error("Spotify session expired. Please log in again.");
+        } else {
+          toast.error("Playback failed. Is Spotify connected?");
+        }
+
+        return false;
       }
+    },
+    [deviceId, playTrack],
+  );
 
-      return false;
-    }
-  };
-
-  const resetTrackState = () => {
-    setShowAnswer(false);
+  const resetTrackState = useCallback(() => {
+    updateGameState({
+      showAnswer: false,
+    });
     setIsPaused(false);
-  };
+  }, [updateGameState]);
 
-  const handlePlayFirst = async () => {
+  const handlePlayFirst = useCallback(async () => {
     if (!currentTrack || !ensureDeviceReady()) return;
 
     const position = calculateStartPosition(currentTrack.duration_ms);
@@ -167,13 +243,16 @@ export default function GuessingGame({
 
     if (!success) return;
 
-    setStartPosition(position);
-    setHasStarted(true);
-    setIsFinished(false);
-    resetTrackState();
-  };
+    updateGameState({
+      currentIndex: 0,
+      startPosition: position,
+      hasStarted: true,
+      isFinished: false,
+      showAnswer: false,
+    });
+  }, [currentTrack, calculateStartPosition, play, updateGameState]);
 
-  const handleReplay = async () => {
+  const handleReplay = useCallback(async () => {
     if (!currentTrack || !ensureDeviceReady()) return;
 
     const success = await play(currentTrack, startPosition);
@@ -181,17 +260,19 @@ export default function GuessingGame({
     if (!success) return;
 
     setIsPaused(false);
-  };
+  }, [currentTrack, startPosition, play]);
 
-  const handleNext = async () => {
+  const handleNext = useCallback(async () => {
     if (!ensureDeviceReady()) return;
 
     const isLastTrack = currentIndex >= totalTracks - 1;
 
     if (isLastTrack) {
-      setIsFinished(true);
-      setHasStarted(false);
-      setShowAnswer(false);
+      updateGameState({
+        isFinished: true,
+        hasStarted: false,
+        showAnswer: false,
+      });
       return;
     }
 
@@ -205,12 +286,22 @@ export default function GuessingGame({
 
     if (!success) return;
 
-    setCurrentIndex(nextIndex);
-    setStartPosition(position);
-    resetTrackState();
-  };
+    updateGameState({
+      currentIndex: nextIndex,
+      startPosition: position,
+      showAnswer: false,
+    });
+    setIsPaused(false);
+  }, [
+    currentIndex,
+    totalTracks,
+    tracks,
+    calculateStartPosition,
+    play,
+    updateGameState,
+  ]);
 
-  const handlePauseToggle = async () => {
+  const handlePauseToggle = useCallback(async () => {
     if (!hasStarted || isFinished || !ensureDeviceReady()) return;
 
     try {
@@ -225,24 +316,32 @@ export default function GuessingGame({
       console.error("Pause/Resume failed", err);
       toast.error("Pause/Resume failed");
     }
-  };
+  }, [
+    hasStarted,
+    isFinished,
+    deviceId,
+    isPaused,
+    pausePlayback,
+    resumePlayback,
+  ]);
 
-  const handleShowAnswer = () => {
+  const handleShowAnswer = useCallback(() => {
     if (isAnswerCoolingDown) return;
 
-    setShowAnswer(true);
+    updateGameState({
+      showAnswer: true,
+    });
     onShowAnswer?.(currentTrack?.image ?? null);
 
     setIsAnswerCoolingDown(true);
     setTimeout(() => setIsAnswerCoolingDown(false), 4000);
-  };
+  }, [isAnswerCoolingDown, updateGameState, currentTrack, onShowAnswer]);
 
   // Control bar JSX, reused for both mobile and desktop via portal
   const controlBar = (
     <div
       className={clsx(
         "w-full flex justify-center z-20",
-        // On mobile (no portal) it stays fixed at the bottom
         !portalContainer && "fixed bottom-10",
       )}
     >
@@ -273,6 +372,10 @@ export default function GuessingGame({
       </div>
     </div>
   );
+
+  if (!isClient || !gameState) {
+    return null;
+  }
 
   return (
     <div className="flex flex-col w-full md:h-full">
@@ -363,7 +466,6 @@ export default function GuessingGame({
         )}
       </div>
 
-      {/* Control bar – mobile: fixed at bottom, desktop: portaled into scoreboard column */}
       {portalContainer ? createPortal(controlBar, portalContainer) : controlBar}
     </div>
   );

@@ -49,7 +49,7 @@ export const Button = memo(
           "bg-green-500 border-2 border-green-500 text-black focus:bg-black focus:text-green-500",
         [ButtonTheme.CLEAR]: "focus:text-white",
         [ButtonTheme.INVERT]:
-          "bg-black border-2 border-green-500 text-green-500 focus:bg-green-500 focus:text-black",
+          "bg-black border-2 border-purple-400 text-purple-400 focus:bg-purple-400 focus:text-black",
       }[theme];
 
       const sizeClasses = {
