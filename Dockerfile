@@ -74,10 +74,10 @@ USER nextjs
 
 
 
-EXPOSE 3000
+EXPOSE 2999
 
 
 
 # Use next start instead of node server.js
 
-CMD ["npx", "next", "start", "-p", "3000"]
+CMD ["npx", "next", "start", "-p", "2999"]
