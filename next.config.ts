@@ -3,13 +3,11 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Enable standalone output
   //output: "standalone",
-  
-  basePath: "/quiz",
-  
+
   typescript: {
     ignoreBuildErrors: true,
   },
-  
+
   images: {
     remotePatterns: [
       {
@@ -22,11 +20,11 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  
+
   // Add experimental config for server actions
   experimental: {
     serverActions: {
-      bodySizeLimit: '2mb',
+      bodySizeLimit: "2mb",
     },
   },
 };

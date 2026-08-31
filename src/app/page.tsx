@@ -225,12 +225,52 @@ export default async function PlayerPage() {
           </Container>
           <Container
             direction="col"
+            justify="center"
+            align="center"
+            gap="6"
+            className="w-full p-10 rounded-2xl border border-gray-800 shadow-lg bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900"
+          >
+            <div className="text-center max-w-xl">
+              <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                Going Public
+              </h2>
+
+              <p className="text-gray-300 mt-4 text-sm md:text-base leading-relaxed">
+                As of 9th of march, due to changes in Spotify’s developer
+                platform – including the requirement for all users to have a
+                Premium account and reduced API access – developing Quiz App is
+                no longer sustainable as a closed‑source project.
+              </p>
+
+              <p className="text-gray-400 mt-3 text-sm md:text-base leading-relaxed">
+                Instead of abandoning the project, I'm{" "}
+                <strong>releasing the entire codebase</strong>. Anyone can now
+                fork, maintain, improve, and adapt this project for personal and
+                hobby use.
+              </p>
+
+              <p className="text-gray-500 text-xs mt-6">
+                The open‑source repository will be available on{" "}
+                <a
+                  href="https://github.com/Skoivumaki/quizapp"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-indigo-400 hover:text-indigo-300 transition-colors"
+                >
+                  GitHub
+                </a>{" "}
+                starting March 2026.{" "}
+              </p>
+            </div>
+          </Container>
+          <Container
+            direction="col"
             justify="between"
             align="center"
             gap="4"
             className="w-full p-4 rounded"
           >
-            <h1>{"PROFILE INFO"}</h1>
+            <h1>{"DEBUG: PROFILE INFO"}</h1>
             <UserProfile />
           </Container>
         </div>

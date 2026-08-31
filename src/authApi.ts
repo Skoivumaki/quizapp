@@ -6,7 +6,7 @@ import {
 } from "@reduxjs/toolkit/query/react";
 
 const baseQuery = fetchBaseQuery({
-  baseUrl: "/quiz/api/spotify/",
+  baseUrl: "/api/spotify/",
   credentials: "include",
 });
 
@@ -20,7 +20,7 @@ export const baseQueryWithReauth: BaseQueryFn<
   if (result.error?.status === 401) {
     // attempt token refresh
     console.log("Attempting token refresh...");
-    const refreshResult = await fetch("/quiz/api/spotify/refresh", {
+    const refreshResult = await fetch("/api/spotify/refresh", {
       method: "POST",
       credentials: "include",
     });
