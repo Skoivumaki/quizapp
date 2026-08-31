@@ -37,7 +37,6 @@ Create a `.env.local` file for local development or `.env.production` for Docker
 | `SPOTIFY_CLIENT_SECRET` | Your Spotify application client secret           | `your_spotify_client_secret`              |
 | `SPOTIFY_REDIRECT_URI`  | Callback URL after Spotify authentication       | `http://localhost:3000/api/callback`      |
 | `NEXT_PUBLIC_BASE_URL`  | Public base URL of your app (used in client)     | `http://localhost:3000`                   |
-| `NEXT_PUBLIC_API_URI`   | Public API URI (if different from base URL)      | `https://api.example.com`                 |
 
 For production, set `SPOTIFY_REDIRECT_URI` and `NEXT_PUBLIC_BASE_URL` to your domain (e.g., `https://quiz.example.com`).
 
@@ -86,7 +85,6 @@ The production setup uses `docker-compose.yml` and `Dockerfile`.
    SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
    SPOTIFY_REDIRECT_URI=https://your-domain.com/api/callback
    NEXT_PUBLIC_BASE_URL=https://your-domain.com/
-   NEXT_PUBLIC_API_URI=https://api.your-domain.com
    ```
 
 2. **Ensure the external network exists**
